@@ -82,35 +82,240 @@ checkAdmin();
 <div id="panel" class="panel"><h2 id="panelTitle">Admin</h2><div id="form"></div></div>
 </div>
 <script>
-const panel=document.getElementById('panel'), title=document.getElementById('panelTitle'), form=document.getElementById('form');
-function uploadBlock(id,label){
- return `<label>${label}</label><div class="upload"><input type="file" id="${id}" accept="image/*"><img class="preview" id="${id}Preview"><div class="note">Upload foto dari HP/laptop. Preview akan muncul sebelum disimpan.</div></div>`;
+const panel = document.getElementById('panel');
+const title = document.getElementById('panelTitle');
+const form = document.getElementById('form');
+
+function uploadBlock(id, label){
+  return `
+    <label>${label}</label>
+    <div class="upload">
+      <input type="file" id="${id}" accept="image/*">
+      <img class="preview" id="${id}Preview">
+      <div class="note">Upload foto dari HP/laptop. Preview akan muncul sebelum disimpan.</div>
+    </div>
+  `;
 }
+
 function attachPreview(id){
- const input=document.getElementById(id), img=document.getElementById(id+'Preview');
- if(!input)return; input.onchange=()=>{const f=input.files[0]; if(f){img.src=URL.createObjectURL(f);img.style.display='block';}};
+  const input = document.getElementById(id);
+  const img = document.getElementById(id + 'Preview');
+
+  if(!input) return;
+
+  input.onchange = () => {
+    const file = input.files[0];
+
+    if(file){
+      img.src = URL.createObjectURL(file);
+      img.style.display = 'block';
+    }
+  };
 }
+
 function show(action){
- panel.classList.add('show'); title.textContent=action;
- let html='';
- if(action==='Update Jajan'||action==='Update Order'){
-   html=`<div class="row"><div><label>Nama</label><input placeholder="Nama customer"></div><div><label>Status CO</label><select><option>Belum CO</option><option>Sudah CO</option></select></div></div><label>Update Jajan / Order</label><textarea rows="4" placeholder="Contoh: Ramen x1, Pocky x2"></textarea>${uploadBlock('photo','Foto / bukti update (opsional)')}<button class="save" onclick="saved()">Simpan Update</button>`;
- } else if(action==='Payment Batch'){
-   html=`<div class="row"><div><label>Nama Batch</label><input placeholder="Contoh: 83z Fancon Japan"></div><div><label>Deadline</label><input type="date"></div></div><label>Daftar Nama & Nominal</label><textarea rows="5" placeholder="Nabilah - 100000&#10;Aulia - 150000"></textarea>${uploadBlock('photo','Foto Payment Batch (opsional)')}<label>QRIS / Bukti pembayaran (opsional)</label>${uploadBlock('qris','Upload QRIS')}<button class="save" onclick="saved()">Simpan Payment Batch</button>`;
- } else if(action==='Form Bookslot'){
-   html=`<div class="row"><div><label>Nama</label><input placeholder="Nama pemesan"></div><div><label>No. HP</label><input placeholder="08xxxxxxxxxx"></div></div><label>Konser</label><input placeholder="Nama konser"><label>Nominal Bookslot</label><input type="number" placeholder="Rp">${uploadBlock('photo','Poster / foto info bookslot')}<button class="save" onclick="saved()">Simpan Bookslot</button>`;
- } else if(action==='Form Jastip Tiket'){
-   html=`<label>Nama Konser</label><input placeholder="Nama konser"><label>Detail Jastip</label><textarea rows="5" placeholder="Detail harga, benefit, deadline, dll."></textarea>${uploadBlock('photo','Poster / foto informasi jastip')}<button class="save" onclick="saved()">Simpan Form Jastip</button>`;
- } else if(action==='Jadwal Konser'){
-   html=`<div class="row"><div><label>Nama Konser</label><input placeholder="Nama konser"></div><div><label>Tanggal</label><input type="date"></div></div><label>Lokasi</label><input placeholder="Lokasi">${uploadBlock('photo','Poster konser (opsional)')}<button class="save" onclick="saved()">Tambah Jadwal</button>`;
- } else {
-   html=`<label>Link</label><input placeholder="Tempel link di sini">${uploadBlock('photo','Foto pendukung (opsional)')}<button class="save" onclick="saved()">Simpan</button>`;
- }
- form.innerHTML=html;
- ['photo','qris'].forEach(attachPreview);
- panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  panel.classList.add('show');
+  title.textContent = action;
+
+  let html = '';
+
+  if(action === 'Update Jajan' || action === 'Update Order'){
+    html = `
+      <div class="row">
+        <div>
+          <label>Nama</label>
+          <input id="dataName" placeholder="Nama customer">
+        </div>
+
+        <div>
+          <label>Status CO</label>
+          <select id="dataStatus">
+            <option>Belum CO</option>
+            <option>Sudah CO</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Update Jajan / Order</label>
+      <textarea id="dataDetail" rows="4" placeholder="Contoh: Ramen x1, Pocky x2"></textarea>
+
+      ${uploadBlock('photo','Foto / bukti update (opsional)')}
+
+      <button class="save" onclick="saved()">Simpan Update</button>
+    `;
+
+  } else if(action === 'Payment Batch'){
+    html = `
+      <div class="row">
+        <div>
+          <label>Nama Batch</label>
+          <input id="dataBatch" placeholder="Contoh: 83z Fancon Japan">
+        </div>
+
+        <div>
+          <label>Deadline</label>
+          <input id="dataDeadline" type="date">
+        </div>
+      </div>
+
+      <label>Daftar Nama & Nominal</label>
+      <textarea id="dataDetail" rows="5" placeholder="Nabilah - 100000
+Aulia - 150000"></textarea>
+
+      ${uploadBlock('photo','Foto Payment Batch (opsional)')}
+
+      ${uploadBlock('qris','Upload QRIS')}
+
+      <button class="save" onclick="saved()">Simpan Payment Batch</button>
+    `;
+
+  } else if(action === 'Form Bookslot'){
+    html = `
+      <div class="row">
+        <div>
+          <label>Nama</label>
+          <input id="dataName" placeholder="Nama pemesan">
+        </div>
+
+        <div>
+          <label>No. HP</label>
+          <input id="dataPhone" placeholder="08xxxxxxxxxx">
+        </div>
+      </div>
+
+      <label>Konser</label>
+      <input id="dataConcert" placeholder="Nama konser">
+
+      <label>Nominal Bookslot</label>
+      <input id="dataAmount" type="number" placeholder="Rp">
+
+      ${uploadBlock('photo','Poster / foto info bookslot')}
+
+      <button class="save" onclick="saved()">Simpan Bookslot</button>
+    `;
+
+  } else if(action === 'Form Jastip Tiket'){
+    html = `
+      <label>Nama Konser</label>
+      <input id="dataConcert" placeholder="Nama konser">
+
+      <label>Detail Jastip</label>
+      <textarea id="dataDetail" rows="5" placeholder="Detail harga, benefit, deadline, dll."></textarea>
+
+      ${uploadBlock('photo','Poster / foto informasi jastip')}
+
+      <button class="save" onclick="saved()">Simpan Form Jastip</button>
+    `;
+
+  } else if(action === 'Jadwal Konser'){
+    html = `
+      <div class="row">
+        <div>
+          <label>Nama Konser</label>
+          <input id="dataConcert" placeholder="Nama konser">
+        </div>
+
+        <div>
+          <label>Tanggal</label>
+          <input id="dataDate" type="date">
+        </div>
+      </div>
+
+      <label>Lokasi</label>
+      <input id="dataLocation" placeholder="Lokasi">
+
+      ${uploadBlock('photo','Poster konser (opsional)')}
+
+      <button class="save" onclick="saved()">Tambah Jadwal</button>
+    `;
+
+  } else {
+    html = `
+      <label>Link</label>
+      <input id="dataLink" placeholder="Tempel link di sini">
+
+      ${uploadBlock('photo','Foto pendukung (opsional)')}
+
+      <button class="save" onclick="saved()">Simpan</button>
+    `;
+  }
+
+  form.innerHTML = html;
+
+  ['photo','qris'].forEach(attachPreview);
+
+  panel.scrollIntoView({
+    behavior:'smooth',
+    block:'nearest'
+  });
 }
-function saved(){alert('Tersimpan sebagai prototype. Pada tahap database nanti, file dan data ini akan tersimpan online dan bisa tampil di website customer.');}
-document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>show(b.dataset.action));
+
+async function uploadFile(file){
+  if(!file) return null;
+
+  const reader = new FileReader();
+
+  const base64 = await new Promise((resolve, reject) => {
+    reader.onload = () => {
+      const result = reader.result;
+      resolve(result.split(',')[1]);
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const response = await fetch('/api/upload', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json'
+    },
+    credentials:'include',
+    body:JSON.stringify({
+      filename:file.name,
+      fileBase64:base64,
+      contentType:file.type
+    })
+  });
+
+  const result = await response.json();
+
+  if(!response.ok){
+    throw new Error(result.error || 'Upload gagal');
+  }
+
+  return result.path;
+}
+
+async function saved(){
+  try{
+    const photoInput = document.getElementById('photo');
+    const qrisInput = document.getElementById('qris');
+
+    let uploadedFiles = [];
+
+    if(photoInput && photoInput.files[0]){
+      const path = await uploadFile(photoInput.files[0]);
+      uploadedFiles.push(path);
+    }
+
+    if(qrisInput && qrisInput.files[0]){
+      const path = await uploadFile(qrisInput.files[0]);
+      uploadedFiles.push(path);
+    }
+
+    alert(
+      uploadedFiles.length
+        ? 'File berhasil disimpan online di Supabase! 🎉'
+        : 'Data berhasil diproses. 🎉'
+    );
+
+  }catch(error){
+    alert('Upload gagal: ' + error.message);
+  }
+}
+
+document.querySelectorAll('[data-action]').forEach(button => {
+  button.onclick = () => show(button.dataset.action);
+});
 </script>
-</body></html>
