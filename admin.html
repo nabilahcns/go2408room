@@ -24,7 +24,45 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #cfe0f2;border-ra
 </style>
 </head>
 <body>
-<div class="top"><div class="brand">GO 2408roomstore · ADMIN</div><a class="back" href="/">← Customer Website</a></div>
+
+<style>
+#loginGate{position:fixed;inset:0;background:linear-gradient(135deg,#edf7ff,#fff);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.loginBox{width:min(420px,100%);background:#fff;border:1px solid #dceafa;border-radius:24px;padding:30px;box-shadow:0 20px 60px rgba(38,88,140,.15)}
+.loginBox h1{margin:0 0 8px;color:#244e7c}.loginBox p{color:#718ba8;margin:0 0 22px}.loginBox label{display:block;font-size:13px;font-weight:800;margin:12px 0 6px}.loginBox input{width:100%;padding:13px;border:1px solid #cfe0f2;border-radius:10px}.loginBtn{width:100%;margin-top:18px;padding:13px;border:0;border-radius:12px;background:#2167bd;color:#fff;font-weight:800;cursor:pointer}.loginError{display:none;color:#c33;background:#fff0f0;padding:10px;border-radius:10px;margin-top:12px;font-size:13px}
+body.locked>*:not(#loginGate){visibility:hidden}
+</style>
+<div id="loginGate">
+  <div class="loginBox">
+    <h1>🔐 Admin Login</h1>
+    <p>GO 2408roomstore</p>
+    <form id="loginForm">
+      <label>Username</label>
+      <input id="loginUser" autocomplete="username" required>
+      <label>Password</label>
+      <input id="loginPass" type="password" autocomplete="current-password" required>
+      <button class="loginBtn" type="submit">LOGIN</button>
+      <div class="loginError" id="loginError">Username atau password salah.</div>
+    </form>
+  </div>
+</div>
+<script>
+document.body.classList.add('locked');
+async function checkAdmin(){
+  try{
+    const r=await fetch('/api/auth',{credentials:'include'});
+    if(r.ok){document.getElementById('loginGate').remove();document.body.classList.remove('locked');}
+  }catch(e){}
+}
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',
+    body:JSON.stringify({username:document.getElementById('loginUser').value,password:document.getElementById('loginPass').value})});
+  if(r.ok){location.reload();} else {document.getElementById('loginError').style.display='block';}
+});
+checkAdmin();
+</script>
+
+<div class="top"><div class="brand">GO 2408roomstore · ADMIN</div><div><a class="back" href="/">← Customer Website</a> <button onclick="fetch('/api/auth',{method:'DELETE',credentials:'include'}).then(()=>location.reload())" style="margin-left:12px;border:0;border-radius:10px;padding:9px 12px;background:#edf5fd;color:#2167bd;font-weight:800;cursor:pointer">Logout</button></div></div>
 <div class="wrap">
 <div class="title"><h1>Admin Dashboard</h1><p>Kelola konten dan data operasional GO2408ROOM.</p></div>
 <div class="cards">
