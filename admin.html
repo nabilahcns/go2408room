@@ -74,11 +74,13 @@ if(s!=='concert')m=`<div class="menu">
 <button onclick="openForm('update')"><b>📝 Update Jajan / Order</b><span>Update order & status CO.</span></button>
 <button onclick="openForm('payment')"><b>💳 Payment Batch</b><span>1 batch berisi banyak customer.</span></button>
 ${s!=='jastip'?`<button onclick="openForm('arrived')"><b>📦 Album Arrived INA</b><span>Upload update barang tiba.</span></button>`:''}
-<button onclick="openForm('link')"><b>🔗 Link CO</b><span>Tambah link checkout.</span></button></div>`;
+<button onclick="openForm('link')"><b>🔗 Link CO</b><span>Tambah link checkout.</span></button>
+<button onclick="openDataList()"><b>📋 Lihat Data</b><span>Lihat, edit, dan hapus data yang sudah disimpan.</span></button></div>`;
 else m=`<div class="menu">
 <button onclick="openForm('schedule')"><b>📅 Jadwal Konser</b><span>Tambah jadwal konser.</span></button>
 <button onclick="openForm('bookslot')"><b>🎟️ Form Bookslot</b><span>Input form bookslot.</span></button>
-<button onclick="openForm('concertform')"><b>📝 Form Jastip Tiket</b><span>Input form jastip.</span></button></div>`;
+<button onclick="openForm('concertform')"><b>📝 Form Jastip Tiket</b><span>Input form jastip.</span></button>
+<button onclick="openDataList()"><b>📋 Lihat Data</b><span>Lihat data konser yang sudah disimpan.</span></button></div>`;
 $('modalBody').innerHTML=m;$('modal').classList.add('show')}
 function closeModal(){$('modal').classList.remove('show')}
 function back(){return `<div class="actions"><button type="button" class="btn gray" onclick="openService('${activeService}')">← Kembali</button></div>`}
@@ -130,6 +132,109 @@ function linkForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div cla
 function scheduleForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="cName" required></div><div class="field"><label>Tanggal</label><input id="cDate" type="date" required></div><div class="field"><label>Kota / Venue</label><input id="cVenue"></div>${fileField('cPhoto','Foto Jadwal (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Jadwal</button></div></form>`;$('cPhoto').onchange=()=>preview('cPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('cPhoto').files[0])p=await uploadFile($('cPhoto').files[0],'cPhotoStatus');const x=get('go2408_schedule');x.push({id:Date.now(),name:$('cName').value,date:$('cDate').value,venue:$('cVenue').value,photo:p});save('go2408_schedule',x);$('s').className='status ok';$('s').textContent='✓ Jadwal tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
 function bookslotForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="bName" required></div><div class="field"><label>URL Form Bookslot</label><input id="bUrl" type="url" required></div><div class="field"><label>Info</label><textarea id="bNote"></textarea></div>${fileField('bPhoto','Foto (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('bPhoto').onchange=()=>preview('bPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('bPhoto').files[0])p=await uploadFile($('bPhoto').files[0],'bPhotoStatus');const x=get('go2408_bookslot');x.push({id:Date.now(),concert:$('bName').value,url:$('bUrl').value,note:$('bNote').value,photo:p});save('go2408_bookslot',x);$('s').className='status ok';$('s').textContent='✓ Form tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
 function concertForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="jName" required></div><div class="field"><label>URL Form Jastip</label><input id="jUrl" type="url" required></div><div class="field"><label>Catatan</label><textarea id="jNote"></textarea></div>${fileField('jPhoto','Foto (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('jPhoto').onchange=()=>preview('jPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('jPhoto').files[0])p=await uploadFile($('jPhoto').files[0],'jPhotoStatus');const x=get('go2408_concert_forms');x.push({id:Date.now(),concert:$('jName').value,url:$('jUrl').value,note:$('jNote').value,photo:p});save('go2408_concert_forms',x);$('s').className='status ok';$('s').textContent='✓ Form tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+
+function money(n){return 'Rp '+Number(n||0).toLocaleString('id-ID')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+function openDataList(){
+  $('modalTitle').textContent='Data Tersimpan';
+  $('modalSub').textContent=SERVICE_NAMES[activeService];
+  if(activeService==='concert'){renderConcertData();}else{renderServiceData();}
+}
+
+function renderServiceData(){
+  let batches=get('go2408_batches').filter(x=>x.service===activeService);
+  let updates=get('go2408_updates').filter(x=>x.service===activeService);
+  let arrived=get('go2408_arrived').filter(x=>x.service===activeService);
+  let links=get('go2408_links').filter(x=>x.service===activeService);
+
+  let h='';
+  h+=`<div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="openService('${activeService}')">← Kembali</button></div>`;
+
+  h+=`<h3>💳 Payment Batch</h3>`;
+  if(!batches.length) h+=`<p class="lead">Belum ada Payment Batch.</p>`;
+  batches.forEach(b=>{
+    h+=`<div class="item">
+      <b>${esc(b.batch)}</b><div class="status">${b.customers.length} customer</div>
+      <div style="margin-top:10px;display:grid;gap:6px">
+      ${b.customers.map((c,i)=>`<div style="padding:8px;background:#fff;border:1px solid #e6edf5;border-radius:9px">
+        <b>${esc(c.name)}</b> — ${esc(c.items)} — ${money(c.total)}
+        <span class="status"> · ${esc(c.paymentStatus||'Belum Bayar')}</span>
+      </div>`).join('')}
+      </div>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn gray" onclick="viewBatch(${b.id})">Lihat Detail</button>
+        <button class="btn gray" onclick="deleteData('go2408_batches',${b.id},'Payment Batch')">Hapus</button>
+      </div>
+    </div>`;
+  });
+
+  h+=`<h3 style="margin-top:25px">📝 Update Jajan / Order</h3>`;
+  h+=dataCards(updates,'update');
+
+  if(activeService!=='jastip'){
+    h+=`<h3 style="margin-top:25px">📦 Album Arrived INA</h3>`;
+    h+=dataCards(arrived,'arrived');
+  }
+
+  h+=`<h3 style="margin-top:25px">🔗 Link CO</h3>`;
+  h+=dataCards(links,'link');
+
+  $('modalBody').innerHTML=h;
+}
+
+function dataCards(arr,type){
+  if(!arr.length)return `<p class="lead">Belum ada data.</p>`;
+  return `<div class="list">${arr.map(x=>{
+    if(type==='update')return `<div class="item"><b>${esc(x.name)}</b><div>${esc(x.text)}</div><div class="status">Status: ${esc(x.status)}</div><div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteData('go2408_updates',${x.id},'Update')">Hapus</button></div></div>`;
+    if(type==='arrived')return `<div class="item"><b>${esc(x.title)}</b><div>${esc(x.note||'')}</div><div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteData('go2408_arrived',${x.id},'Album Arrived')">Hapus</button></div></div>`;
+    return `<div class="item"><b>${esc(x.title)}</b><div style="word-break:break-all">${esc(x.url)}</div><div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteData('go2408_links',${x.id},'Link')">Hapus</button></div></div>`;
+  }).join('')}</div>`;
+}
+
+function viewBatch(id){
+  const b=get('go2408_batches').find(x=>x.id===id);
+  if(!b)return;
+  $('modalTitle').textContent=b.batch;
+  $('modalSub').textContent=`${b.customers.length} customer`;
+  $('modalBody').innerHTML=`
+    <div class="item">
+      <b>Foto Proof Batch</b><br>
+      <span class="status">${esc(b.batchPhoto||'Belum ada')}</span>
+    </div>
+    <div class="item" style="margin-top:10px">
+      <b>Foto QRIS</b><br>
+      <span class="status">${esc(b.qris||'Belum ada')}</span>
+    </div>
+    <h3>List Customer</h3>
+    <div class="list">${b.customers.map(c=>`
+      <div class="item">
+        <b>${esc(c.name)}</b>
+        <div>${esc(c.items)}</div>
+        <strong>${money(c.total)}</strong>
+        <div class="status">Status: ${esc(c.paymentStatus||'Belum Bayar')}</div>
+        ${c.paymentProof?`<div class="status">Bukti Payment: ${esc(c.paymentProof)}</div>`:''}
+      </div>`).join('')}</div>
+    <div class="actions"><button class="btn gray" onclick="renderServiceData()">← Kembali ke Data</button></div>`;
+}
+
+function renderConcertData(){
+  const schedule=get('go2408_schedule');
+  const bookslot=get('go2408_bookslot');
+  const forms=get('go2408_concert_forms');
+  $('modalBody').innerHTML=`
+    <div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="openService('concert')">← Kembali</button></div>
+    <h3>📅 Jadwal Konser</h3>${dataCards(schedule.map(x=>({...x,title:x.name,note:`${x.date||''} ${x.venue||''}`})),'arrived')}
+    <h3 style="margin-top:25px">🎟️ Form Bookslot</h3>${dataCards(bookslot.map(x=>({...x,title:x.concert,note:x.note||'',url:x.url})),'link')}
+    <h3 style="margin-top:25px">📝 Form Jastip Tiket</h3>${dataCards(forms.map(x=>({...x,title:x.concert,note:x.note||'',url:x.url})),'link')}`;
+}
+
+function deleteData(key,id,label){
+  if(!confirm(`Hapus ${label} ini?`))return;
+  save(key,get(key).filter(x=>x.id!==id));
+  openDataList();
+}
+
 checkAuth();
 </script>
 </body>
