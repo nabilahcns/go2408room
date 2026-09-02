@@ -1,11 +1,16 @@
 import crypto from "crypto";
-import { createClient } from "@supabase/supabase-js";
+
+const BUCKET = "go2408room-files";
 
 function verifyToken(token) {
   try {
     if (!token) return false;
 
-    const [encoded, signature] = token.split(".");
+    const parts = token.split(".");
+
+    if (parts.length !== 2) return false;
+
+    const [encoded, signature] = parts;
 
     const expected = crypto
       .createHmac("sha256", process.env.AUTH_SECRET)
@@ -33,60 +38,96 @@ export default async function handler(req, res) {
     });
   }
 
+  // =========================
+  // CHECK ADMIN LOGIN
+  // =========================
+
   const cookies = req.headers.cookie || "";
   const match = cookies.match(/admin_session=([^;]+)/);
   const token = match ? match[1] : null;
 
   if (!verifyToken(token)) {
     return res.status(401).json({
-      error: "Unauthorized"
+      error: "Unauthorized. Silakan login sebagai admin."
     });
   }
 
   try {
-    const { filename, fileBase64, contentType } = req.body || {};
+    const { filename } = req.body || {};
 
-    if (!filename || !fileBase64) {
+    if (!filename) {
       return res.status(400).json({
-        error: "File tidak ditemukan"
+        error: "Nama file tidak ditemukan."
       });
     }
 
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SECRET_KEY
-    );
+    // =========================
+    // CLEAN FILE NAME
+    // =========================
 
-    const fileBuffer = Buffer.from(fileBase64, "base64");
-
-    const safeName = filename.replace(
-      /[^a-zA-Z0-9._-]/g,
-      "_"
-    );
+    const safeName = filename
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
 
     const path = `${Date.now()}-${safeName}`;
 
-    const { error } = await supabase.storage
-      .from("go2408room-files")
-      .upload(path, fileBuffer, {
-        contentType: contentType || "application/octet-stream",
-        upsert: false
-      });
+    // =========================
+    // CREATE SIGNED UPLOAD URL
+    // =========================
 
-    if (error) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseSecret = process.env.SUPABASE_SECRET_KEY;
+
+    if (!supabaseUrl || !supabaseSecret) {
       return res.status(500).json({
-        error: error.message
+        error: "Supabase environment variable belum lengkap."
       });
     }
 
+    const endpoint =
+      `${supabaseUrl}/storage/v1/object/upload/sign/` +
+      `${BUCKET}/${encodeURIComponent(path)}`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+
+      headers: {
+        "Authorization": `Bearer ${supabaseSecret}`,
+        "apikey": supabaseSecret,
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        upsert: false
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.message || data.error || "Gagal membuat upload URL."
+      });
+    }
+
+    // =========================
+    // RETURN SIGNED URL
+    // =========================
+
+    const signedUrl = data.signedUrl
+      ? data.signedUrl
+      : `${supabaseUrl}/storage/v1${data.url}`;
+
     return res.status(200).json({
       success: true,
-      path
+      path,
+      signedUrl
     });
 
   } catch (error) {
+    console.error("UPLOAD ERROR:", error);
+
     return res.status(500).json({
-      error: error.message || "Upload gagal"
+      error: error.message || "Upload gagal."
     });
   }
 }
