@@ -1,375 +1,1560 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin - GO 2408roomstore</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#244e7c;background:#f7fbff}
-.top{background:#fff;border-bottom:1px solid #dceafa;padding:18px 6%;display:flex;justify-content:space-between;align-items:center}
-.brand{font-size:21px;font-weight:900}.back{color:#2167bd;text-decoration:none;font-weight:800}
-.wrap{max-width:1150px;margin:auto;padding:38px 20px 70px}.title h1{margin:0;font-size:42px}.title p{color:#718ba8}
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px}
-.card{background:#fff;border:1px solid #dceafa;border-radius:22px;padding:22px;box-shadow:0 8px 25px rgba(38,88,140,.06)}
-.card h2{margin:0 0 18px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-button{border:0;border-radius:12px;padding:12px;background:#eaf4ff;color:#1d5fa8;font-weight:800;cursor:pointer}.primary{background:#2167bd;color:#fff}
-.panel{display:none;background:#fff;border:1px solid #dceafa;border-radius:22px;padding:24px;margin-top:22px}.panel.show{display:block}
-label{display:block;font-size:13px;font-weight:800;margin:12px 0 6px;color:#4f6e8e}
-input,select,textarea{width:100%;padding:12px;border:1px solid #cfe0f2;border-radius:10px;background:#fff}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.upload{border:2px dashed #bcd5ef;border-radius:14px;padding:18px;background:#f8fcff}
-.preview{display:none;margin-top:10px;max-width:260px;max-height:180px;border-radius:12px;object-fit:cover}
-.save{margin-top:16px;width:100%;background:#2167bd;color:#fff}
-.note{font-size:13px;color:#718ba8;margin-top:12px}
-@media(max-width:720px){.cards,.actions,.row{grid-template-columns:1fr}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>GO2408ROOM - Admin</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================
+       LOGIN
+    ========================= */
+
+    #loginPage {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      padding: 32px;
+      border-radius: 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+    }
+
+    .login-box h1 {
+      margin-top: 0;
+      text-align: center;
+      color: #2563eb;
+    }
+
+    .login-box p {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 25px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      margin-top: 7px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+    }
+
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .logout-btn {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .error {
+      color: #dc2626;
+      text-align: center;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    /* =========================
+       ADMIN
+    ========================= */
+
+    #adminPage {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: white;
+      padding: 18px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #2563eb;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 30px 20px 60px;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .welcome h2 {
+      margin-bottom: 5px;
+    }
+
+    .welcome p {
+      color: #6b7280;
+      margin-top: 0;
+    }
+
+    /* =========================
+       MENU CARDS
+    ========================= */
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .menu-card {
+      background: white;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .menu-icon {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .menu-card h3 {
+      margin: 5px 0;
+    }
+
+    .menu-card p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    /* =========================
+       SECTION
+    ========================= */
+
+    .section {
+      background: white;
+      border-radius: 18px;
+      padding: 25px;
+      margin-top: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+    }
+
+    .back-btn {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .save-btn {
+      background: #2563eb;
+      color: white;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .upload-box {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 18px;
+    }
+
+    .upload-box input {
+      margin-bottom: 0;
+    }
+
+    .note {
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      color: #1d4ed8;
+      margin-bottom: 20px;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 700px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        padding: 15px;
+      }
+
+      .topbar h1 {
+        font-size: 18px;
+      }
+
+      .logout-btn {
+        padding: 9px 12px;
+        font-size: 12px;
+      }
+
+      .section {
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<style>
-#loginGate{position:fixed;inset:0;background:linear-gradient(135deg,#edf7ff,#fff);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
-.loginBox{width:min(420px,100%);background:#fff;border:1px solid #dceafa;border-radius:24px;padding:30px;box-shadow:0 20px 60px rgba(38,88,140,.15)}
-.loginBox h1{margin:0 0 8px;color:#244e7c}.loginBox p{color:#718ba8;margin:0 0 22px}.loginBox label{display:block;font-size:13px;font-weight:800;margin:12px 0 6px}.loginBox input{width:100%;padding:13px;border:1px solid #cfe0f2;border-radius:10px}.loginBtn{width:100%;margin-top:18px;padding:13px;border:0;border-radius:12px;background:#2167bd;color:#fff;font-weight:800;cursor:pointer}.loginError{display:none;color:#c33;background:#fff0f0;padding:10px;border-radius:10px;margin-top:12px;font-size:13px}
-body.locked>*:not(#loginGate){visibility:hidden}
-</style>
-<div id="loginGate">
-  <div class="loginBox">
-    <h1>🔐 Admin Login</h1>
-    <p>GO 2408roomstore</p>
+<!-- =====================================================
+     LOGIN PAGE
+===================================================== -->
+
+<div id="loginPage">
+
+  <div class="login-box">
+
+    <h1>GO2408ROOM</h1>
+
+    <p>Admin Dashboard</p>
+
     <form id="loginForm">
-      <label>Username</label>
-      <input id="loginUser" autocomplete="username" required>
-      <label>Password</label>
-      <input id="loginPass" type="password" autocomplete="current-password" required>
-      <button class="loginBtn" type="submit">LOGIN</button>
-      <div class="loginError" id="loginError">Username atau password salah.</div>
+
+      <label>
+        Username
+      </label>
+
+      <input
+        type="text"
+        id="username"
+        autocomplete="username"
+        required
+      >
+
+      <label>
+        Password
+      </label>
+
+      <input
+        type="password"
+        id="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button
+        type="submit"
+        class="primary-btn"
+      >
+        Login
+      </button>
+
+      <div
+        id="loginError"
+        class="error"
+      ></div>
+
     </form>
+
   </div>
-</div>
-<script>
-document.body.classList.add('locked');
-async function checkAdmin(){
-  try{
-    const r=await fetch('/api/auth',{credentials:'include'});
-    if(r.ok){document.getElementById('loginGate').remove();document.body.classList.remove('locked');}
-  }catch(e){}
-}
-document.getElementById('loginForm').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',
-    body:JSON.stringify({username:document.getElementById('loginUser').value,password:document.getElementById('loginPass').value})});
-  if(r.ok){location.reload();} else {document.getElementById('loginError').style.display='block';}
-});
-checkAdmin();
-</script>
 
-<div class="top"><div class="brand">GO 2408roomstore · ADMIN</div><div><a class="back" href="/">← Customer Website</a> <button onclick="fetch('/api/auth',{method:'DELETE',credentials:'include'}).then(()=>location.reload())" style="margin-left:12px;border:0;border-radius:10px;padding:9px 12px;background:#edf5fd;color:#2167bd;font-weight:800;cursor:pointer">Logout</button></div></div>
-<div class="wrap">
-<div class="title"><h1>Admin Dashboard</h1><p>Kelola konten dan data operasional GO2408ROOM.</p></div>
-<div class="cards">
-<div class="card"><h2>GO Super Jajan (WH Nab)</h2><div class="actions">
-<button class="primary" data-action="Update Jajan">Update Jajan</button><button data-action="Payment Batch">Payment Batch</button><button data-action="Album Arrived INA">Album Arrived INA</button><button data-action="Link Shopee">Link Shopee untuk CO</button>
-</div></div>
-<div class="card"><h2>GO Efensi Stan</h2><div class="actions">
-<button class="primary" data-action="Update Order">Update Order</button><button data-action="Payment Batch">Payment Batch</button><button data-action="Album Arrived INA">Album Arrived INA</button><button data-action="Link Shopee">Link Shopee untuk CO</button>
-</div></div>
-<div class="card"><h2>Jastip Tiket Konser</h2><div class="actions">
-<button class="primary" data-action="Jadwal Konser">Jadwal Konser</button><button data-action="Form Bookslot">Form Bookslot</button><button data-action="Form Jastip Tiket">Form Jastip per Konser</button>
-</div></div>
-<div class="card"><h2>Jastip 2408roomstore</h2><div class="actions">
-<button class="primary" data-action="Update Jajan">Update Jajan</button><button data-action="Payment Batch">Payment Batch</button><button data-action="Link CO">Link CO</button>
-</div></div>
 </div>
-<div id="panel" class="panel"><h2 id="panelTitle">Admin</h2><div id="form"></div></div>
-</div>
-<script>
-const panel = document.getElementById('panel');
-const title = document.getElementById('panelTitle');
-const form = document.getElementById('form');
 
-function uploadBlock(id, label){
-  return `
-    <label>${label}</label>
-    <div class="upload">
-      <input type="file" id="${id}" accept="image/*">
-      <img class="preview" id="${id}Preview">
-      <div class="note">Upload foto dari HP/laptop. Preview akan muncul sebelum disimpan.</div>
+
+<!-- =====================================================
+     ADMIN PAGE
+===================================================== -->
+
+<div
+  id="adminPage"
+  class="hidden"
+>
+
+  <div class="topbar">
+
+    <h1>GO2408ROOM Admin</h1>
+
+    <button
+      class="logout-btn"
+      onclick="logout()"
+    >
+      Logout
+    </button>
+
+  </div>
+
+
+  <div class="container">
+
+    <div class="welcome">
+
+      <h2>Admin Dashboard 👋</h2>
+
+      <p>
+        Kelola update GO2408ROOM dari sini.
+      </p>
+
     </div>
-  `;
-}
 
-function attachPreview(id){
-  const input = document.getElementById(id);
-  const img = document.getElementById(id + 'Preview');
 
-  if(!input) return;
+    <!-- =================================================
+         MENU
+    ================================================== -->
 
-  input.onchange = () => {
-    const file = input.files[0];
+    <div
+      id="menuPage"
+      class="menu-grid"
+    >
 
-    if(file){
-      img.src = URL.createObjectURL(file);
-      img.style.display = 'block';
-    }
-  };
-}
+      <div
+        class="menu-card"
+        onclick="openSection('payment')"
+      >
 
-function show(action){
-  panel.classList.add('show');
-  title.textContent = action;
+        <div class="menu-icon">💳</div>
 
-  let html = '';
+        <h3>Payment Batch</h3>
 
-  if(action === 'Update Jajan' || action === 'Update Order'){
-    html = `
-      <div class="row">
-        <div>
-          <label>Nama</label>
-          <input id="dataName" placeholder="Nama customer">
-        </div>
+        <p>
+          Tambah batch pembayaran dan QRIS.
+        </p>
 
-        <div>
-          <label>Status CO</label>
-          <select id="dataStatus">
-            <option>Belum CO</option>
-            <option>Sudah CO</option>
-          </select>
-        </div>
       </div>
 
-      <label>Update Jajan / Order</label>
-      <textarea id="dataDetail" rows="4" placeholder="Contoh: Ramen x1, Pocky x2"></textarea>
 
-      ${uploadBlock('photo','Foto / bukti update (opsional)')}
+      <div
+        class="menu-card"
+        onclick="openSection('jajan')"
+      >
 
-      <button class="save" onclick="saved()">Simpan Update</button>
-    `;
+        <div class="menu-icon">📦</div>
 
-  } else if(action === 'Payment Batch'){
-    html = `
-      <div class="row">
-        <div>
-          <label>Nama Batch</label>
-          <input id="dataBatch" placeholder="Contoh: 83z Fancon Japan">
-        </div>
+        <h3>Update Jajan / Order</h3>
 
-        <div>
-          <label>Deadline</label>
-          <input id="dataDeadline" type="date">
-        </div>
+        <p>
+          Update status pesanan customer.
+        </p>
+
       </div>
 
-      <label>Daftar Nama & Nominal</label>
-      <textarea id="dataDetail" rows="5" placeholder="Nabilah - 100000
-Aulia - 150000"></textarea>
 
-      ${uploadBlock('photo','Foto Payment Batch (opsional)')}
+      <div
+        class="menu-card"
+        onclick="openSection('album')"
+      >
 
-      ${uploadBlock('qris','Upload QRIS')}
+        <div class="menu-icon">🖼️</div>
 
-      <button class="save" onclick="saved()">Simpan Payment Batch</button>
-    `;
+        <h3>Album Arrived INA</h3>
 
-  } else if(action === 'Form Bookslot'){
-    html = `
-      <div class="row">
-        <div>
-          <label>Nama</label>
-          <input id="dataName" placeholder="Nama pemesan">
-        </div>
+        <p>
+          Update album yang sudah tiba di Indonesia.
+        </p>
 
-        <div>
-          <label>No. HP</label>
-          <input id="dataPhone" placeholder="08xxxxxxxxxx">
-        </div>
       </div>
 
-      <label>Konser</label>
-      <input id="dataConcert" placeholder="Nama konser">
 
-      <label>Nominal Bookslot</label>
-      <input id="dataAmount" type="number" placeholder="Rp">
+      <div
+        class="menu-card"
+        onclick="openSection('concert')"
+      >
 
-      ${uploadBlock('photo','Poster / foto info bookslot')}
+        <div class="menu-icon">🎤</div>
 
-      <button class="save" onclick="saved()">Simpan Bookslot</button>
-    `;
+        <h3>Jadwal Konser</h3>
 
-  } else if(action === 'Form Jastip Tiket'){
-    html = `
-      <label>Nama Konser</label>
-      <input id="dataConcert" placeholder="Nama konser">
+        <p>
+          Kelola jadwal konser dan informasinya.
+        </p>
 
-      <label>Detail Jastip</label>
-      <textarea id="dataDetail" rows="5" placeholder="Detail harga, benefit, deadline, dll."></textarea>
-
-      ${uploadBlock('photo','Poster / foto informasi jastip')}
-
-      <button class="save" onclick="saved()">Simpan Form Jastip</button>
-    `;
-
-  } else if(action === 'Jadwal Konser'){
-    html = `
-      <div class="row">
-        <div>
-          <label>Nama Konser</label>
-          <input id="dataConcert" placeholder="Nama konser">
-        </div>
-
-        <div>
-          <label>Tanggal</label>
-          <input id="dataDate" type="date">
-        </div>
       </div>
 
-      <label>Lokasi</label>
-      <input id="dataLocation" placeholder="Lokasi">
 
-      ${uploadBlock('photo','Poster konser (opsional)')}
+      <div
+        class="menu-card"
+        onclick="openSection('bookslot')"
+      >
 
-      <button class="save" onclick="saved()">Tambah Jadwal</button>
-    `;
+        <div class="menu-icon">🎟️</div>
 
-  } else {
-    html = `
-      <label>Link</label>
-      <input id="dataLink" placeholder="Tempel link di sini">
+        <h3>Form Bookslot</h3>
 
-      ${uploadBlock('photo','Foto pendukung (opsional)')}
+        <p>
+          Buat informasi dan form bookslot.
+        </p>
 
-      <button class="save" onclick="saved()">Simpan</button>
-    `;
-  }
+      </div>
 
-  form.innerHTML = html;
 
-  ['photo','qris'].forEach(attachPreview);
+      <div
+        class="menu-card"
+        onclick="openSection('jastip')"
+      >
 
-  panel.scrollIntoView({
-    behavior:'smooth',
-    block:'nearest'
-  });
-}
+        <div class="menu-icon">🎫</div>
 
-async function uploadFile(file){
-  if(!file) return null;
+        <h3>Form Jastip Tiket</h3>
 
-  // 1. Minta signed upload URL ke server
-  const response = await fetch('/api/upload', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      filename: file.name
-    })
-  });
+        <p>
+          Kelola form jastip berdasarkan konser.
+        </p>
 
-  const result = await response.json();
+      </div>
 
-  if(!response.ok){
-    throw new Error(
-      result.error || 'Gagal mendapatkan upload URL'
+
+      <div
+        class="menu-card"
+        onclick="openSection('links')"
+      >
+
+        <div class="menu-icon">🔗</div>
+
+        <h3>Link CO / Shopee</h3>
+
+        <p>
+          Simpan link checkout dan Shopee.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =================================================
+         PAYMENT
+    ================================================== -->
+
+    <div
+      id="payment"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>💳 Payment Batch</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+      <div class="note">
+        Tambahkan informasi batch pembayaran customer.
+      </div>
+
+
+      <label>
+        Nama Batch
+      </label>
+
+      <input
+        type="text"
+        id="paymentBatch"
+        placeholder="Contoh: Payment Batch 01"
+      >
+
+
+      <label>
+        Detail / Nama Customer
+      </label>
+
+      <textarea
+        id="paymentNames"
+        placeholder="Contoh:
+Nabila - Rp150.000
+Alya - Rp200.000
+Rani - Rp175.000"
+      ></textarea>
+
+
+      <label>
+        Total Pembayaran
+      </label>
+
+      <input
+        type="text"
+        id="paymentTotal"
+        placeholder="Contoh: Rp525.000"
+      >
+
+
+      <div class="upload-box">
+
+        <label>
+          Foto Payment Batch
+        </label>
+
+        <input
+          type="file"
+          id="photo"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <div class="upload-box">
+
+        <label>
+          QRIS
+        </label>
+
+        <input
+          type="file"
+          id="qris"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        onclick="savePayment()"
+      >
+        💾 Simpan Payment Batch
+      </button>
+
+    </div>
+
+
+    <!-- =================================================
+         JAJAN
+    ================================================== -->
+
+    <div
+      id="jajan"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>📦 Update Jajan / Order</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+
+      <label>
+        Nama Customer
+      </label>
+
+      <input
+        type="text"
+        id="jajanName"
+        placeholder="Nama customer"
+      >
+
+
+      <label>
+        Update Pesanan
+      </label>
+
+      <textarea
+        id="jajanUpdate"
+        placeholder="Contoh: Album sudah di CO"
+      ></textarea>
+
+
+      <label>
+        Status
+      </label>
+
+      <select id="jajanStatus">
+
+        <option value="Diproses">
+          Diproses
+        </option>
+
+        <option value="Sudah CO">
+          Sudah CO
+        </option>
+
+        <option value="Arrived INA">
+          Arrived INA
+        </option>
+
+        <option value="Selesai">
+          Selesai
+        </option>
+
+      </select>
+
+
+      <div class="upload-box">
+
+        <label>
+          Foto Pendukung
+        </label>
+
+        <input
+          type="file"
+          id="jajanPhoto"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        onclick="saveJajan()"
+      >
+        💾 Simpan Update
+      </button>
+
+    </div>
+
+
+    <!-- =================================================
+         ALBUM
+    ================================================== -->
+
+    <div
+      id="album"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>🖼️ Album Arrived INA</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+
+      <label>
+        Nama / Judul Album
+      </label>
+
+      <input
+        type="text"
+        id="albumName"
+        placeholder="Contoh: Super Junior - Album X"
+      >
+
+
+      <label>
+        Keterangan
+      </label>
+
+      <textarea
+        id="albumDescription"
+        placeholder="Contoh: Album sudah tiba di Indonesia."
+      ></textarea>
+
+
+      <div class="upload-box">
+
+        <label>
+          Foto Album
+        </label>
+
+        <input
+          type="file"
+          id="albumPhoto"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        onclick="saveAlbum()"
+      >
+        💾 Simpan Album
+      </button>
+
+    </div>
+
+
+    <!-- =================================================
+         CONCERT
+    ================================================== -->
+
+    <div
+      id="concert"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>🎤 Jadwal Konser</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+
+      <label>
+        Nama Artis / Konser
+      </label>
+
+      <input
+        type="text"
+        id="concertName"
+        placeholder="Contoh: Super Junior 83z Fancon"
+      >
+
+
+      <label>
+        Kota / Venue
+      </label>
+
+      <input
+        type="text"
+        id="concertVenue"
+        placeholder="Contoh: Kuala Lumpur - Axiata Arena"
+      >
+
+
+      <label>
+        Tanggal
+      </label>
+
+      <input
+        type="date"
+        id="concertDate"
+      >
+
+
+      <label>
+        Informasi Tambahan
+      </label>
+
+      <textarea
+        id="concertInfo"
+        placeholder="Informasi konser..."
+      ></textarea>
+
+
+      <div class="upload-box">
+
+        <label>
+          Poster Konser
+        </label>
+
+        <input
+          type="file"
+          id="concertPhoto"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        onclick="saveConcert()"
+      >
+        💾 Simpan Jadwal
+      </button>
+
+    </div>
+
+
+    <!-- =================================================
+         BOOKSLOT
+    ================================================== -->
+
+    <div
+      id="bookslot"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>🎟️ Form Bookslot</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+
+      <label>
+        Nama Konser
+      </label>
+
+      <input
+        type="text"
+        id="bookslotConcert"
+        placeholder="Nama konser"
+      >
+
+
+      <label>
+        Link Form Bookslot
+      </label>
+
+      <input
+        type="url"
+        id="bookslotLink"
+        placeholder="https://..."
+      >
+
+
+      <label>
+        Informasi Bookslot
+      </label>
+
+      <textarea
+        id="bookslotInfo"
+        placeholder="Informasi mengenai bookslot..."
+      ></textarea>
+
+
+      <div class="upload-box">
+
+        <label>
+          Poster / Foto Bookslot
+        </label>
+
+        <input
+          type="file"
+          id="bookslotPhoto"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        onclick="saveBookslot()"
+      >
+        💾 Simpan Bookslot
+      </button>
+
+    </div>
+
+
+    <!-- =================================================
+         JASTIP
+    ================================================== -->
+
+    <div
+      id="jastip"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>🎫 Form Jastip Tiket</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+
+      <label>
+        Nama Konser
+      </label>
+
+      <input
+        type="text"
+        id="jastipConcert"
+        placeholder="Nama konser"
+      >
+
+
+      <label>
+        Link Form Jastip
+      </label>
+
+      <input
+        type="url"
+        id="jastipLink"
+        placeholder="https://..."
+      >
+
+
+      <label>
+        Informasi Jastip
+      </label>
+
+      <textarea
+        id="jastipInfo"
+        placeholder="Informasi jastip..."
+      ></textarea>
+
+
+      <div class="upload-box">
+
+        <label>
+          Poster / Foto Jastip
+        </label>
+
+        <input
+          type="file"
+          id="jastipPhoto"
+          accept="image/*"
+        >
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        onclick="saveJastip()"
+      >
+        💾 Simpan Jastip
+      </button>
+
+    </div>
+
+
+    <!-- =================================================
+         LINKS
+    ================================================== -->
+
+    <div
+      id="links"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <h2>🔗 Link CO / Shopee</h2>
+
+        <button
+          class="back-btn"
+          onclick="backToMenu()"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+
+      <label>
+        Nama Link
+      </label>
+
+      <input
+        type="text"
+        id="linkName"
+        placeholder="Contoh: Shopee GO Super Jajan"
+      >
+
+
+      <label>
+        URL
+      </label>
+
+      <input
+        type="url"
+        id="linkUrl"
+        placeholder="https://..."
+      >
+
+
+      <button
+        class="save-btn"
+        onclick="saveLink()"
+      >
+        💾 Simpan Link
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   AUTH CHECK
+===================================================== */
+
+async function checkAuth(){
+
+  try {
+
+    const response = await fetch(
+      '/api/auth',
+      {
+        method: 'GET',
+        credentials: 'include'
+      }
     );
+
+    if(response.ok){
+
+      document
+        .getElementById('loginPage')
+        .classList.add('hidden');
+
+      document
+        .getElementById('adminPage')
+        .classList.remove('hidden');
+
+    } else {
+
+      document
+        .getElementById('loginPage')
+        .classList.remove('hidden');
+
+      document
+        .getElementById('adminPage')
+        .classList.add('hidden');
+
+    }
+
+  } catch(error){
+
+    console.error(error);
+
+    document
+      .getElementById('loginPage')
+      .classList.remove('hidden');
+
   }
 
-  // 2. Upload file LANGSUNG ke Supabase
-  const uploadResponse = await fetch(
-    result.signedUrl,
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream'
-      },
-      body: file
+}
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+document
+  .getElementById('loginForm')
+  .addEventListener(
+    'submit',
+    async function(event){
+
+      event.preventDefault();
+
+      const username =
+        document.getElementById('username').value;
+
+      const password =
+        document.getElementById('password').value;
+
+      const errorBox =
+        document.getElementById('loginError');
+
+      errorBox.textContent = '';
+
+      try {
+
+        const response = await fetch(
+          '/api/auth',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type': 'application/json'
+            },
+
+            credentials: 'include',
+
+            body: JSON.stringify({
+              username,
+              password
+            })
+          }
+        );
+
+        const result =
+          await response.json();
+
+        if(!response.ok){
+
+          errorBox.textContent =
+            result.error ||
+            'Username atau password salah.';
+
+          return;
+        }
+
+        location.reload();
+
+      } catch(error){
+
+        console.error(error);
+
+        errorBox.textContent =
+          'Terjadi kesalahan. Coba lagi.';
+
+      }
+
     }
   );
 
-  if(!uploadResponse.ok){
-    let errorMessage = 'Upload ke Supabase gagal';
 
-    try {
-      const errorData = await uploadResponse.json();
-      errorMessage =
-        errorData.message ||
-        errorData.error ||
-        errorMessage;
-    } catch {}
+/* =====================================================
+   LOGOUT
+===================================================== */
 
-    throw new Error(errorMessage);
-  }
+async function logout(){
 
-  // 3. Upload berhasil
-  return result.path;
-}
-  
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  try {
 
-  const response = await fetch('/api/upload', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json'
-    },
-    credentials:'include',
-    body:JSON.stringify({
-      filename:file.name,
-      fileBase64:base64,
-      contentType:file.type
-    })
-  });
-
-  const result = await response.json();
-
-  if(!response.ok){
-    throw new Error(result.error || 'Upload gagal');
-  }
-
-  return result.path;
-}
-
-async function saved(){
-  try{
-    const photoInput = document.getElementById('photo');
-    const qrisInput = document.getElementById('qris');
-
-    let uploadedFiles = [];
-
-    // Upload foto utama
-    if(photoInput && photoInput.files[0]){
-      const path = await uploadFile(
-        photoInput.files[0]
-      );
-
-      uploadedFiles.push(path);
-    }
-
-    // Upload QRIS
-    if(qrisInput && qrisInput.files[0]){
-      const path = await uploadFile(
-        qrisInput.files[0]
-      );
-
-      uploadedFiles.push(path);
-    }
-
-    alert(
-      uploadedFiles.length
-        ? 'File berhasil disimpan online di Supabase! 🎉'
-        : 'Data berhasil diproses. 🎉'
+    await fetch(
+      '/api/auth',
+      {
+        method: 'DELETE',
+        credentials: 'include'
+      }
     );
 
-  }catch(error){
+  } catch(error){
+
+    console.error(error);
+
+  }
+
+  location.reload();
+
+}
+
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+
+function openSection(sectionId){
+
+  document
+    .getElementById('menuPage')
+    .classList.add('hidden');
+
+  document
+    .querySelectorAll('.section')
+    .forEach(
+      function(section){
+
+        section.classList.add('hidden');
+
+      }
+    );
+
+  document
+    .getElementById(sectionId)
+    .classList.remove('hidden');
+
+}
+
+
+function backToMenu(){
+
+  document
+    .querySelectorAll('.section')
+    .forEach(
+      function(section){
+
+        section.classList.add('hidden');
+
+      }
+    );
+
+  document
+    .getElementById('menuPage')
+    .classList.remove('hidden');
+
+}
+
+
+/* =====================================================
+   UPLOAD FILE
+===================================================== */
+
+async function uploadFile(file){
+
+  if(!file){
+    return null;
+  }
+
+  /*
+    Minta signed upload URL
+    dari server.
+  */
+
+  const response =
+    await fetch(
+      '/api/upload',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        credentials: 'include',
+
+        body: JSON.stringify({
+          filename: file.name
+        })
+      }
+    );
+
+
+  let result;
+
+  try {
+
+    result =
+      await response.json();
+
+  } catch(error){
+
+    throw new Error(
+      'Server upload memberikan response yang tidak valid.'
+    );
+
+  }
+
+
+  if(!response.ok){
+
+    throw new Error(
+      result.error ||
+      'Gagal mendapatkan upload URL.'
+    );
+
+  }
+
+
+  /*
+    Upload file langsung
+    ke Supabase.
+  */
+
+  const uploadResponse =
+    await fetch(
+      result.signedUrl,
+      {
+        method: 'PUT',
+
+        headers: {
+          'Content-Type':
+            file.type ||
+            'application/octet-stream'
+        },
+
+        body: file
+      }
+    );
+
+
+  if(!uploadResponse.ok){
+
+    let message =
+      'Upload ke Supabase gagal.';
+
+    try {
+
+      const errorData =
+        await uploadResponse.json();
+
+      message =
+        errorData.message ||
+        errorData.error ||
+        message;
+
+    } catch(error){
+
+      // ignore
+
+    }
+
+    throw new Error(message);
+
+  }
+
+
+  return result.path;
+
+}
+
+
+/* =====================================================
+   PAYMENT
+===================================================== */
+
+async function savePayment(){
+
+  try {
+
+    const photo =
+      document.getElementById('photo');
+
+    const qris =
+      document.getElementById('qris');
+
+
+    let uploaded = [];
+
+
+    if(
+      photo &&
+      photo.files &&
+      photo.files[0]
+    ){
+
+      const path =
+        await uploadFile(
+          photo.files[0]
+        );
+
+      uploaded.push(path);
+
+    }
+
+
+    if(
+      qris &&
+      qris.files &&
+      qris.files[0]
+    ){
+
+      const path =
+        await uploadFile(
+          qris.files[0]
+        );
+
+      uploaded.push(path);
+
+    }
+
+
+    alert(
+      uploaded.length > 0
+        ? 'Payment Batch berhasil disimpan! 🎉'
+        : 'Payment Batch berhasil diproses! 🎉'
+    );
+
+  } catch(error){
+
     console.error(error);
 
     alert(
       'Upload gagal: ' +
-      (error.message || 'Terjadi kesalahan')
+      error.message
     );
+
   }
+
 }
-document.querySelectorAll('[data-action]').forEach(button => {
-  button.onclick = () => show(button.dataset.action);
-});
+
+
+/* =====================================================
+   GENERIC SAVE FUNCTIONS
+===================================================== */
+
+async function saveWithPhoto(
+  photoId,
+  successMessage
+){
+
+  try {
+
+    const input =
+      document.getElementById(photoId);
+
+    if(
+      input &&
+      input.files &&
+      input.files[0]
+    ){
+
+      await uploadFile(
+        input.files[0]
+      );
+
+    }
+
+    alert(successMessage);
+
+  } catch(error){
+
+    console.error(error);
+
+    alert(
+      'Upload gagal: ' +
+      error.message
+    );
+
+  }
+
+}
+
+
+async function saveJajan(){
+
+  await saveWithPhoto(
+    'jajanPhoto',
+    'Update Jajan berhasil disimpan! 🎉'
+  );
+
+}
+
+
+async function saveAlbum(){
+
+  await saveWithPhoto(
+    'albumPhoto',
+    'Album berhasil disimpan! 🎉'
+  );
+
+}
+
+
+async function saveConcert(){
+
+  await saveWithPhoto(
+    'concertPhoto',
+    'Jadwal konser berhasil disimpan! 🎉'
+  );
+
+}
+
+
+async function saveBookslot(){
+
+  await saveWithPhoto(
+    'bookslotPhoto',
+    'Form Bookslot berhasil disimpan! 🎉'
+  );
+
+}
+
+
+async function saveJastip(){
+
+  await saveWithPhoto(
+    'jastipPhoto',
+    'Form Jastip berhasil disimpan! 🎉'
+  );
+
+}
+
+
+function saveLink(){
+
+  alert(
+    'Link berhasil diproses! 🔗'
+  );
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+checkAuth();
+
 </script>
+
+</body>
+</html>
