@@ -336,13 +336,21 @@ async function saved(){
 
     let uploadedFiles = [];
 
+    // Upload foto utama
     if(photoInput && photoInput.files[0]){
-      const path = await uploadFile(photoInput.files[0]);
+      const path = await uploadFile(
+        photoInput.files[0]
+      );
+
       uploadedFiles.push(path);
     }
 
+    // Upload QRIS
     if(qrisInput && qrisInput.files[0]){
-      const path = await uploadFile(qrisInput.files[0]);
+      const path = await uploadFile(
+        qrisInput.files[0]
+      );
+
       uploadedFiles.push(path);
     }
 
@@ -353,10 +361,14 @@ async function saved(){
     );
 
   }catch(error){
-    alert('Upload gagal: ' + error.message);
+    console.error(error);
+
+    alert(
+      'Upload gagal: ' +
+      (error.message || 'Terjadi kesalahan')
+    );
   }
 }
-
 document.querySelectorAll('[data-action]').forEach(button => {
   button.onclick = () => show(button.dataset.action);
 });
