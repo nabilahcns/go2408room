@@ -84,4 +84,123 @@ function outside(e,id){if(e.target.id===id)closeModal(id)}
 function fmt(n){return Number(n||0).toLocaleString('id-ID')}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 </script>
+<section class="admin-dashboard" id="adminDashboard"></section>
+<style>
+.admin-dashboard{margin-top:34px;padding:28px;border-radius:24px;background:#f7fbff;border:1px solid #dcecff}
+.admin-dashboard h2{margin:0 0 8px;color:#1856a3}
+.admin-dashboard .admin-note{color:#6883a5;margin-bottom:22px}
+.admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.admin-card{background:#fff;border:1px solid #dbe9f8;border-radius:20px;padding:20px;box-shadow:0 8px 22px rgba(33,91,150,.07)}
+.admin-card h3{margin:0 0 14px;color:#24578e}
+.admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.admin-actions button{border:0;border-radius:12px;padding:12px 10px;background:#eaf4ff;color:#1856a3;font-weight:700;cursor:pointer}
+.admin-actions button.primary{background:#2167bd;color:white}
+.admin-panel{display:none;margin-top:20px;background:#fff;border:1px solid #dbe9f8;border-radius:18px;padding:18px}
+.admin-panel.active{display:block}
+.admin-panel label{display:block;font-size:13px;font-weight:700;color:#486989;margin:10px 0 6px}
+.admin-panel input,.admin-panel select{width:100%;padding:11px;border:1px solid #cfe0f2;border-radius:10px;box-sizing:border-box}
+.admin-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-save{margin-top:14px;width:100%;padding:12px;border:0;border-radius:12px;background:#2167bd;color:#fff;font-weight:800;cursor:pointer}
+@media(max-width:720px){.admin-grid,.admin-actions,.admin-row{grid-template-columns:1fr}}
+</style>
+
+<script>
+(function(){
+  const cards = [
+    ["super","GO Super Jajan (WH Nab)",["Update Jajan","Payment Batch","Album Arrived INA","Link Shopee untuk CO"]],
+    ["efensi","GO Efensi Stan",["Update Order","Payment Batch","Album Arrived INA","Link Shopee untuk CO"]],
+    ["konser","Jastip Tiket Konser",["Jadwal Konser","Form Bookslot","Form Jastip per Konser"]],
+    ["store","Jastip 2408roomstore",["Update Jajan","Payment Batch","Link CO"]]
+  ];
+  const dash = document.getElementById("adminDashboard");
+  if(!dash) return;
+  dash.innerHTML = `
+    <h2>Admin Dashboard</h2>
+    <div class="admin-note">Kelola batch, jajan, konser, dan link dari satu tempat. Versi ini masih prototype.</div>
+    <div class="admin-grid">
+      ${cards.map(c=>`
+        <div class="admin-card">
+          <h3>${c[1]}</h3>
+          <div class="admin-actions">
+            ${c[2].map((a,i)=>`<button class="${i===0?'primary':''}" data-action="${a}" data-service="${c[0]}">${a}</button>`).join("")}
+          </div>
+        </div>`).join("")}
+    </div>
+    <div class="admin-panel" id="adminPanel">
+      <h3 id="panelTitle">Admin</h3>
+      <div id="panelBody"></div>
+    </div>
+  `;
+  const panel = document.getElementById("adminPanel");
+  const title = document.getElementById("panelTitle");
+  const body = document.getElementById("panelBody");
+
+  document.querySelectorAll("[data-action]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const action = btn.dataset.action;
+      title.textContent = action;
+      panel.classList.add("active");
+
+      if(action.includes("Update Jajan") || action.includes("Update Order")){
+        body.innerHTML = `
+          <div class="admin-row">
+            <div><label>Nama</label><input placeholder="Contoh: Nabilah"></div>
+            <div><label>Status CO</label><select><option>Belum CO</option><option>Sudah CO</option></select></div>
+          </div>
+          <label>Update Jajanan / Order</label>
+          <input placeholder="Contoh: Ramen x1, Pocky x2">
+          <button class="admin-save" onclick="alert('Tersimpan di prototype. Database online akan dibuat pada tahap berikutnya.')">Simpan Update</button>
+        `;
+      } else if(action === "Payment Batch"){
+        body.innerHTML = `
+          <div class="admin-row">
+            <div><label>Nama Batch</label><input placeholder="Contoh: 83z Fancon Japan"></div>
+            <div><label>Deadline</label><input type="date"></div>
+          </div>
+          <label>Daftar nama & nominal</label>
+          <input placeholder="Nabilah - 100000; Aulia - 150000">
+          <button class="admin-save" onclick="alert('Batch tersimpan di prototype. Nanti customer bisa memilih nama dan diarahkan ke payment gateway.')">Simpan Payment Batch</button>
+        `;
+      } else if(action === "Album Arrived INA"){
+        body.innerHTML = `
+          <label>Judul Album / Batch</label><input placeholder="Contoh: SJ 83z Fancon Japan">
+          <label>Status</label><select><option>Belum Arrived</option><option>Arrived INA</option></select>
+          <button class="admin-save" onclick="alert('Status album tersimpan di prototype.')">Update Status</button>
+        `;
+      } else if(action === "Link Shopee untuk CO" || action === "Link CO"){
+        body.innerHTML = `
+          <label>Link CO</label><input placeholder="Tempel link Shopee / checkout di sini">
+          <button class="admin-save" onclick="alert('Link tersimpan di prototype.')">Simpan Link</button>
+        `;
+      } else if(action === "Jadwal Konser"){
+        body.innerHTML = `
+          <div class="admin-row">
+            <div><label>Nama Konser</label><input placeholder="Contoh: Super Junior ..."></div>
+            <div><label>Tanggal</label><input type="date"></div>
+          </div>
+          <label>Lokasi</label><input placeholder="Contoh: Jakarta">
+          <button class="admin-save" onclick="alert('Jadwal tersimpan di prototype.')">Tambah Jadwal</button>
+        `;
+      } else if(action === "Form Bookslot"){
+        body.innerHTML = `
+          <div class="admin-row">
+            <div><label>Nama</label><input placeholder="Nama pemesan"></div>
+            <div><label>No. HP</label><input placeholder="08xxxxxxxxxx"></div>
+          </div>
+          <label>Konser</label><input placeholder="Pilih / isi nama konser">
+          <label>Nominal Bookslot</label><input type="number" placeholder="Rp">
+          <button class="admin-save" onclick="alert('Bookslot tersimpan di prototype. Payment gateway akan disambungkan nanti.')">Simpan Bookslot</button>
+        `;
+      } else if(action === "Form Jastip per Konser"){
+        body.innerHTML = `
+          <label>Konser</label><input placeholder="Nama konser">
+          <label>Form / Link Jastip</label><input placeholder="Tempel link atau detail form">
+          <button class="admin-save" onclick="alert('Form jastip tersimpan di prototype.')">Simpan Form</button>
+        `;
+      }
+      panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+    });
+  });
+})();
+</script>
 </body></html>
