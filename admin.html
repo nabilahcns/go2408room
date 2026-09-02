@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - GO 2408roomstore</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#244e7c;background:#f7fbff}
+.top{background:#fff;border-bottom:1px solid #dceafa;padding:18px 6%;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:21px;font-weight:900}.back{color:#2167bd;text-decoration:none;font-weight:800}
+.wrap{max-width:1150px;margin:auto;padding:38px 20px 70px}.title h1{margin:0;font-size:42px}.title p{color:#718ba8}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px}
+.card{background:#fff;border:1px solid #dceafa;border-radius:22px;padding:22px;box-shadow:0 8px 25px rgba(38,88,140,.06)}
+.card h2{margin:0 0 18px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:12px;padding:12px;background:#eaf4ff;color:#1d5fa8;font-weight:800;cursor:pointer}.primary{background:#2167bd;color:#fff}
+.panel{display:none;background:#fff;border:1px solid #dceafa;border-radius:22px;padding:24px;margin-top:22px}.panel.show{display:block}
+label{display:block;font-size:13px;font-weight:800;margin:12px 0 6px;color:#4f6e8e}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cfe0f2;border-radius:10px;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.upload{border:2px dashed #bcd5ef;border-radius:14px;padding:18px;background:#f8fcff}
+.preview{display:none;margin-top:10px;max-width:260px;max-height:180px;border-radius:12px;object-fit:cover}
+.save{margin-top:16px;width:100%;background:#2167bd;color:#fff}
+.note{font-size:13px;color:#718ba8;margin-top:12px}
+@media(max-width:720px){.cards,.actions,.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><div class="brand">GO 2408roomstore · ADMIN</div><a class="back" href="/">← Customer Website</a></div>
+<div class="wrap">
+<div class="title"><h1>Admin Dashboard</h1><p>Kelola konten dan data operasional GO2408ROOM.</p></div>
+<div class="cards">
+<div class="card"><h2>GO Super Jajan (WH Nab)</h2><div class="actions">
+<button class="primary" data-action="Update Jajan">Update Jajan</button><button data-action="Payment Batch">Payment Batch</button><button data-action="Album Arrived INA">Album Arrived INA</button><button data-action="Link Shopee">Link Shopee untuk CO</button>
+</div></div>
+<div class="card"><h2>GO Efensi Stan</h2><div class="actions">
+<button class="primary" data-action="Update Order">Update Order</button><button data-action="Payment Batch">Payment Batch</button><button data-action="Album Arrived INA">Album Arrived INA</button><button data-action="Link Shopee">Link Shopee untuk CO</button>
+</div></div>
+<div class="card"><h2>Jastip Tiket Konser</h2><div class="actions">
+<button class="primary" data-action="Jadwal Konser">Jadwal Konser</button><button data-action="Form Bookslot">Form Bookslot</button><button data-action="Form Jastip Tiket">Form Jastip per Konser</button>
+</div></div>
+<div class="card"><h2>Jastip 2408roomstore</h2><div class="actions">
+<button class="primary" data-action="Update Jajan">Update Jajan</button><button data-action="Payment Batch">Payment Batch</button><button data-action="Link CO">Link CO</button>
+</div></div>
+</div>
+<div id="panel" class="panel"><h2 id="panelTitle">Admin</h2><div id="form"></div></div>
+</div>
+<script>
+const panel=document.getElementById('panel'), title=document.getElementById('panelTitle'), form=document.getElementById('form');
+function uploadBlock(id,label){
+ return `<label>${label}</label><div class="upload"><input type="file" id="${id}" accept="image/*"><img class="preview" id="${id}Preview"><div class="note">Upload foto dari HP/laptop. Preview akan muncul sebelum disimpan.</div></div>`;
+}
+function attachPreview(id){
+ const input=document.getElementById(id), img=document.getElementById(id+'Preview');
+ if(!input)return; input.onchange=()=>{const f=input.files[0]; if(f){img.src=URL.createObjectURL(f);img.style.display='block';}};
+}
+function show(action){
+ panel.classList.add('show'); title.textContent=action;
+ let html='';
+ if(action==='Update Jajan'||action==='Update Order'){
+   html=`<div class="row"><div><label>Nama</label><input placeholder="Nama customer"></div><div><label>Status CO</label><select><option>Belum CO</option><option>Sudah CO</option></select></div></div><label>Update Jajan / Order</label><textarea rows="4" placeholder="Contoh: Ramen x1, Pocky x2"></textarea>${uploadBlock('photo','Foto / bukti update (opsional)')}<button class="save" onclick="saved()">Simpan Update</button>`;
+ } else if(action==='Payment Batch'){
+   html=`<div class="row"><div><label>Nama Batch</label><input placeholder="Contoh: 83z Fancon Japan"></div><div><label>Deadline</label><input type="date"></div></div><label>Daftar Nama & Nominal</label><textarea rows="5" placeholder="Nabilah - 100000&#10;Aulia - 150000"></textarea>${uploadBlock('photo','Foto Payment Batch (opsional)')}<label>QRIS / Bukti pembayaran (opsional)</label>${uploadBlock('qris','Upload QRIS')}<button class="save" onclick="saved()">Simpan Payment Batch</button>`;
+ } else if(action==='Form Bookslot'){
+   html=`<div class="row"><div><label>Nama</label><input placeholder="Nama pemesan"></div><div><label>No. HP</label><input placeholder="08xxxxxxxxxx"></div></div><label>Konser</label><input placeholder="Nama konser"><label>Nominal Bookslot</label><input type="number" placeholder="Rp">${uploadBlock('photo','Poster / foto info bookslot')}<button class="save" onclick="saved()">Simpan Bookslot</button>`;
+ } else if(action==='Form Jastip Tiket'){
+   html=`<label>Nama Konser</label><input placeholder="Nama konser"><label>Detail Jastip</label><textarea rows="5" placeholder="Detail harga, benefit, deadline, dll."></textarea>${uploadBlock('photo','Poster / foto informasi jastip')}<button class="save" onclick="saved()">Simpan Form Jastip</button>`;
+ } else if(action==='Jadwal Konser'){
+   html=`<div class="row"><div><label>Nama Konser</label><input placeholder="Nama konser"></div><div><label>Tanggal</label><input type="date"></div></div><label>Lokasi</label><input placeholder="Lokasi">${uploadBlock('photo','Poster konser (opsional)')}<button class="save" onclick="saved()">Tambah Jadwal</button>`;
+ } else {
+   html=`<label>Link</label><input placeholder="Tempel link di sini">${uploadBlock('photo','Foto pendukung (opsional)')}<button class="save" onclick="saved()">Simpan</button>`;
+ }
+ form.innerHTML=html;
+ ['photo','qris'].forEach(attachPreview);
+ panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function saved(){alert('Tersimpan sebagai prototype. Pada tahap database nanti, file dan data ini akan tersimpan online dan bisa tampil di website customer.');}
+document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>show(b.dataset.action));
+</script>
+</body></html>
