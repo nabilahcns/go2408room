@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GO 2408roomstore</title>
+<style>
+:root{--blue:#2257c7;--sky:#a9ccff;--light:#eef5ff;--ink:#18335f;--muted:#70809c;--line:#dbe7fb;--bg:#f8fbff;--green:#1d9a65}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#eaf3ff,#fff 70%);color:var(--ink)}
+button,input,textarea{font:inherit}.top{background:var(--sky);padding:24px 18px 30px;text-align:center}.logo{width:170px;max-width:55vw;border-radius:18px;box-shadow:0 12px 30px #507cc844}.brand{font-size:12px;font-weight:900;letter-spacing:.16em;color:var(--blue);margin-top:11px}
+main{width:min(980px,92vw);margin:auto;padding:34px 0 70px}.hero{text-align:center;margin-bottom:28px}.eyebrow{color:var(--blue);font-weight:900;font-size:12px;letter-spacing:.12em}.hero h1{font-size:clamp(34px,7vw,58px);letter-spacing:-.05em;margin:6px 0}.subtitle{color:var(--muted);margin:0;line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.card{background:#fff;border:1px solid var(--line);border-radius:23px;padding:22px;box-shadow:0 15px 40px #3c65a515;cursor:pointer;transition:.18s;min-height:160px}.card:hover{transform:translateY(-3px);box-shadow:0 18px 45px #3c65a528}.icon{width:48px;height:48px;border-radius:15px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:23px;margin-bottom:16px}.card h2{font-size:18px;margin:0 0 7px}.card p{font-size:13px;color:var(--muted);margin:0;line-height:1.45}.arrow{float:right;color:var(--blue);font-weight:900}
+.overlay{position:fixed;inset:0;background:#10265377;display:none;align-items:flex-end;justify-content:center;padding:12px;z-index:20}.overlay.show{display:flex}.modal{width:min(680px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:28px;padding:24px;box-shadow:0 25px 80px #12264d44}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.close{width:40px;height:40px;border:0;border-radius:50%;background:#f0f4fa;font-size:21px;cursor:pointer;flex:none}.pill{display:inline-block;padding:6px 10px;border-radius:99px;background:var(--light);color:var(--blue);font-weight:900;font-size:11px}.option-grid{display:grid;gap:11px;margin-top:20px}.option{padding:17px;border:1px solid var(--line);border-radius:17px;cursor:pointer;background:#fff;text-align:left}.option:hover{background:#f8fbff;border-color:#aac7f8}.option b{display:block;margin-bottom:4px}.option span{font-size:12px;color:var(--muted)}
+.form{display:grid;gap:13px;margin-top:18px}.field label{display:block;font-size:12px;font-weight:900;margin-bottom:7px}.field input,.field textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:14px;outline:0}.field input:focus,.field textarea:focus{border-color:#7da7ef;box-shadow:0 0 0 4px #7da7ef22}.field textarea{min-height:110px;resize:vertical}.btn{border:0;border-radius:14px;padding:13px 17px;background:var(--blue);color:#fff;font-weight:900;cursor:pointer}.btn.alt{background:var(--light);color:var(--blue)}.back{margin-bottom:15px}.success{padding:13px 14px;border-radius:14px;background:#eaf9f1;color:#14774d;font-size:13px;display:none}.success.show{display:block}
+.table{margin-top:20px;border:1px solid var(--line);border-radius:17px;overflow:hidden}.row{display:grid;grid-template-columns:1fr 1.5fr .7fr;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);font-size:12px}.row:last-child{border:0}.row.head{font-weight:900;background:#f7f9fd}.badge{display:inline-block;padding:5px 8px;border-radius:8px;background:#f0f4fa;font-size:10px;font-weight:900}.badge.done{background:#eaf9f1;color:#14774d}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:14px}.empty{text-align:center;padding:24px;color:var(--muted);font-size:13px}
+@media(max-width:600px){.modal{border-radius:24px}.row{grid-template-columns:1fr}.row.head{display:none}}
+</style>
+</head>
+<body>
+<header class="top"><img class="logo" src="logo.jpg" alt="GO 2408roomstore"><div class="brand">GO • JASTIP • SUPER JUNIOR</div></header>
+<main>
+<section class="hero"><div class="eyebrow">WELCOME TO</div><h1>GO 2408roomstore</h1><p class="subtitle">Pilih layanan yang mau kamu akses 💙</p></section>
+<section class="grid">
+ <article class="card" onclick="openMenu('jajan')"><div class="icon">🍜</div><span class="arrow">→</span><h2>GO Super Jajan (WH Nab)</h2><p>Update jajanan dan status sudah di-co.</p></article>
+ <article class="card" onclick="coming('GO Efensi Stan')"><div class="icon">🛍️</div><span class="arrow">→</span><h2>GO Efensi Stan</h2><p>Kelola order untuk Efensi Stan.</p></article>
+ <article class="card" onclick="coming('Jastip Tiket Konser')"><div class="icon">🎫</div><span class="arrow">→</span><h2>Jastip Tiket Konser</h2><p>Informasi dan pengelolaan jastip tiket konser.</p></article>
+ <article class="card" onclick="coming('Jastip 2408roomstore')"><div class="icon">📦</div><span class="arrow">→</span><h2>Jastip 2408roomstore</h2><p>Kelola jastip barang dari 2408roomstore.</p></article>
+</section>
+</main>
+
+<div class="overlay" id="menuModal" onclick="outside(event,'menuModal')"><div class="modal">
+ <div class="modal-head"><div><span class="pill">GO SUPER JAJAN</span><h2 style="margin:10px 0 4px">WH Nab</h2><p class="subtitle" style="font-size:13px">Pilih yang mau kamu lakukan.</p></div><button class="close" onclick="closeModal('menuModal')">×</button></div>
+ <div class="option-grid">
+  <button class="option" onclick="showUpdate()"><b>✏️ Update Jajan</b><span>Input nama → update jajanan → update status sudah di-co</span></button>
+  <button class="option" onclick="showPaymentBatches()"><b>💳 Payment Batch</b><span>Cari batch → cari nama → lihat jajanan, total, QRIS & proof batch.</span></button>
+  <button class="option" onclick="showRecap()"><b>📋 Lihat Rekap</b><span>Lihat data update yang sudah dimasukkan di browser ini.</span></button>
+ </div>
+</div></div>
+
+<div class="overlay" id="updateModal" onclick="outside(event,'updateModal')"><div class="modal">
+ <button class="btn alt back" onclick="backToMenu()">← Kembali</button>
+ <div class="modal-head"><div><span class="pill">UPDATE JAJAN</span><h2 style="margin:10px 0 4px">Update Jajan — WH Nab</h2><p class="subtitle" style="font-size:13px">Masukkan nama customer dan perubahan jajanan.</p></div><button class="close" onclick="closeModal('updateModal')">×</button></div>
+ <form class="form" onsubmit="saveUpdate(event)">
+  <div class="field"><label>Nama</label><input id="customerName" required placeholder="Contoh: Nabilah"></div>
+  <div class="field"><label>Update Jajanan</label><textarea id="foodUpdate" required placeholder="Contoh: Tambah 2 mie goreng + 1 es teh"></textarea></div>
+  <div class="field"><label>Status sudah di-co?</label><select id="coStatus" style="width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:#fff"><option value="Belum CO">Belum CO</option><option value="Sudah CO">Sudah CO</option></select></div>
+  <button class="btn" type="submit">Simpan Update</button>
+  <div id="success" class="success">✓ Update berhasil disimpan.</div>
+ </form>
+</div></div>
+
+
+<div class="overlay" id="paymentModal" onclick="outside(event,'paymentModal')"><div class="modal">
+ <button class="btn alt back" onclick="backToMenuFromPayment()">← Kembali</button>
+ <div class="modal-head"><div><span class="pill">PAYMENT BATCH</span><h2 style="margin:10px 0 4px">Payment Batch</h2><p class="subtitle" style="font-size:13px">Pilih batch lalu cari nama kamu.</p></div><button class="close" onclick="closeModal('paymentModal')">×</button></div>
+ <div id="batchList"></div>
+</div></div>
+
+<div class="overlay" id="batchDetailModal" onclick="outside(event,'batchDetailModal')"><div class="modal">
+ <button class="btn alt back" onclick="backToBatches()">← Kembali</button>
+ <div id="batchDetail"></div>
+</div></div>
+
+<div class="overlay" id="paymentUploadModal" onclick="outside(event,'paymentUploadModal')"><div class="modal">
+ <button class="btn alt back" onclick="backToBatchDetail()">← Kembali</button>
+ <div class="modal-head"><div><span class="pill">BUKTI PEMBAYARAN</span><h2 style="margin:10px 0 4px">Upload Bukti Payment</h2><p class="subtitle" style="font-size:13px">Prototype: bukti akan tersimpan di browser ini.</p></div><button class="close" onclick="closeModal('paymentUploadModal')">×</button></div>
+ <form class="form" onsubmit="submitPaymentProof(event)">
+  <div id="selectedCustomer" class="note"></div>
+  <div class="field"><label>Foto Bukti Pembayaran</label><input id="paymentProofFile" type="file" accept="image/*" required></div>
+  <button class="btn" type="submit">Kirim Bukti Pembayaran</button>
+  <div id="paymentSuccess" class="success">✓ Bukti pembayaran berhasil dikirim.</div>
+ </form>
+</div></div>
+
+<div class="overlay" id="recapModal" onclick="outside(event,'recapModal')"><div class="modal">
+ <button class="btn alt back" onclick="backToMenuFromRecap()">← Kembali</button>
+ <div class="modal-head"><div><span class="pill">REKAP</span><h2 style="margin:10px 0 4px">Rekap Update Jajan</h2><p class="subtitle" style="font-size:13px">Data yang sudah kamu input.</p></div><button class="close" onclick="closeModal('recapModal')">×</button></div>
+ <div id="recap"></div>
+</div></div>
+<script>
+const KEY='go2408room_jajan_updates';
+function getData(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function saveData(data){localStorage.setItem(KEY,JSON.stringify(data))}
+function openMenu(which){if(which==='jajan')document.getElementById('menuModal').classList.add('show')}
+function showUpdate(){closeModal('menuModal');document.getElementById('customerName').value='';document.getElementById('foodUpdate').value='';document.getElementById('coStatus').value='Belum CO';document.getElementById('success').classList.remove('show');document.getElementById('updateModal').classList.add('show')}
+function saveUpdate(e){e.preventDefault();const data=getData();data.push({name:customerName.value.trim(),food:foodUpdate.value.trim(),co:coStatus.value,time:new Date().toLocaleString('id-ID')});saveData(data);document.getElementById('success').classList.add('show');e.target.reset();}
+function showRecap(){closeModal('menuModal');renderRecap();document.getElementById('recapModal').classList.add('show')}
+function renderRecap(){const data=getData();document.getElementById('recap').innerHTML=data.length?'<div class="table"><div class="row head"><div>Nama</div><div>Update Jajanan</div><div>Status</div></div>'+data.map(x=>`<div class="row"><div><b>${escapeHtml(x.name)}</b><div style="color:var(--muted);font-size:10px;margin-top:4px">${escapeHtml(x.time)}</div></div><div>${escapeHtml(x.food)}</div><div><span class="badge ${x.co==='Sudah CO'?'done':''}">${escapeHtml(x.co)}</span></div></div>`).join('')+'</div>':'<div class="empty">Belum ada update jajan.</div>'}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function backToMenu(){closeModal('updateModal');document.getElementById('menuModal').classList.add('show')}
+function backToMenuFromRecap(){closeModal('recapModal');document.getElementById('menuModal').classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function outside(e,id){if(e.target.id===id)closeModal(id)}
+
+let selectedBatchId=null;
+let selectedCustomerName='';
+
+function getBatches(){
+  try{return JSON.parse(localStorage.getItem('go2408_batches')||'[]')}
+  catch(e){return[]}
+}
+function rupiah(n){return 'Rp '+Number(n||0).toLocaleString('id-ID')}
+function showPaymentBatches(){
+  closeModal('menuModal');
+  renderBatchList();
+  document.getElementById('paymentModal').classList.add('show');
+}
+function renderBatchList(){
+  const batches=getBatches();
+  const el=document.getElementById('batchList');
+  if(!batches.length){
+    el.innerHTML='<div class="empty">Belum ada Payment Batch.</div>';
+    return;
+  }
+  el.innerHTML='<div class="option-grid">'+batches.map(b=>`
+    <button class="option" onclick="openBatch(${Number(b.id)})">
+      <b>💳 ${escapeHtml(b.batch)}</b>
+      <span>${b.customers?.length||0} customer</span>
+    </button>`).join('')+'</div>';
+}
+function openBatch(id){
+  selectedBatchId=id;
+  closeModal('paymentModal');
+  renderBatchDetail();
+  document.getElementById('batchDetailModal').classList.add('show');
+}
+function renderBatchDetail(){
+  const b=getBatches().find(x=>Number(x.id)===Number(selectedBatchId));
+  if(!b){document.getElementById('batchDetail').innerHTML='<div class="empty">Batch tidak ditemukan.</div>';return}
+  document.getElementById('batchDetail').innerHTML=`
+    <span class="pill">PAYMENT BATCH</span>
+    <h2 style="margin:10px 0 4px">${escapeHtml(b.batch)}</h2>
+    <p class="subtitle" style="font-size:13px">Cari nama kamu untuk melihat detail order.</p>
+    <div class="field" style="margin-top:18px">
+      <label>Cari Nama Customer</label>
+      <input id="customerSearch" placeholder="Contoh: Nabilah" oninput="searchCustomer()" autocomplete="off">
+    </div>
+    <div id="customerResult"></div>
+    <div class="item" style="margin-top:18px">
+      <b>📸 Proof Batch</b>
+      <div class="note">Foto tersimpan di: ${escapeHtml(b.batchPhoto||'-')}</div>
+    </div>
+    <div class="item" style="margin-top:10px">
+      <b>📱 QRIS</b>
+      <div class="note">Foto tersimpan di: ${escapeHtml(b.qris||'-')}</div>
+    </div>`;
+}
+function searchCustomer(){
+  const b=getBatches().find(x=>Number(x.id)===Number(selectedBatchId));
+  const q=(document.getElementById('customerSearch').value||'').trim().toLowerCase();
+  const el=document.getElementById('customerResult');
+  if(!q){el.innerHTML='';return}
+  const found=(b?.customers||[]).filter(c=>c.name.toLowerCase().includes(q));
+  if(!found.length){el.innerHTML='<div class="empty">Nama belum ditemukan di batch ini.</div>';return}
+  el.innerHTML=found.map((c,i)=>`
+    <button class="option" style="width:100%;margin-top:10px" onclick="selectCustomer(${i})">
+      <b>👋 ${escapeHtml(c.name)}</b>
+      <span>${escapeHtml(c.items)} · ${rupiah(c.total)}</span>
+    </button>`).join('');
+  window._customerMatches=found;
+}
+function selectCustomer(i){
+  const c=window._customerMatches?.[i]; if(!c)return;
+  selectedCustomerName=c.name;
+  const b=getBatches().find(x=>Number(x.id)===Number(selectedBatchId));
+  document.getElementById('customerResult').innerHTML=`
+    <div class="item" style="margin-top:14px">
+      <span class="pill">ORDER KAMU</span>
+      <h3 style="margin:10px 0 6px">${escapeHtml(c.name)}</h3>
+      <div style="line-height:1.7">${escapeHtml(c.items)}</div>
+      <h2 style="margin:12px 0">${rupiah(c.total)}</h2>
+      <div class="badge ${c.paymentStatus==='Sudah Bayar'?'done':''}">${escapeHtml(c.paymentStatus||'Belum Bayar')}</div>
+      <div class="actions" style="margin-top:15px">
+        <button class="btn" onclick="openPaymentUpload()">📤 Upload Bukti Pembayaran</button>
+      </div>
+    </div>
+    <div class="item" style="margin-top:12px"><b>📱 QRIS</b><div class="note">${escapeHtml(b.qris||'-')}</div></div>
+    <div class="item" style="margin-top:10px"><b>📸 Proof Batch</b><div class="note">${escapeHtml(b.batchPhoto||'-')}</div></div>`;
+}
+function openPaymentUpload(){
+  document.getElementById('selectedCustomer').textContent='Customer: '+selectedCustomerName;
+  document.getElementById('paymentProofFile').value='';
+  document.getElementById('paymentSuccess').classList.remove('show');
+  closeModal('batchDetailModal');
+  document.getElementById('paymentUploadModal').classList.add('show');
+}
+function submitPaymentProof(e){
+  e.preventDefault();
+  const file=document.getElementById('paymentProofFile').files[0];
+  if(!file)return;
+  const batches=getBatches();
+  const b=batches.find(x=>Number(x.id)===Number(selectedBatchId));
+  const c=b?.customers?.find(x=>x.name===selectedCustomerName);
+  if(c){
+    c.paymentProof=file.name;
+    c.paymentStatus='Menunggu Verifikasi';
+    localStorage.setItem('go2408_batches',JSON.stringify(batches));
+  }
+  document.getElementById('paymentSuccess').classList.add('show');
+}
+function backToMenuFromPayment(){closeModal('paymentModal');document.getElementById('menuModal').classList.add('show')}
+function backToBatches(){closeModal('batchDetailModal');renderBatchList();document.getElementById('paymentModal').classList.add('show')}
+function backToBatchDetail(){closeModal('paymentUploadModal');renderBatchDetail();document.getElementById('batchDetailModal').classList.add('show')}
+function coming(name){alert(name+' akan kita bangun berikutnya 💙')}
+</script>
+</body></html>
