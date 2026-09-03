@@ -43,8 +43,11 @@ function parseCSV(text) {
   return rows;
 }
 
-function normalize(value) {
+function cleanHeader(value) {
   return String(value || "")
+    .replace(/\r/g, "")
+    .replace(/\n/g, " ")
+    .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
@@ -68,75 +71,89 @@ export default async function handler(req, res) {
       });
     }
 
-    const headers = rows[0].map(h =>
-      String(h)
-        .replace(/\r/g, "")
-        .replace(/\n/g, " ")
-        .trim()
-    );
+    // Header Google Sheet
+    const headers = rows[0].map(header => String(header || "").trim());
 
-    const data = rows.slice(1).map(row => {
-      const obj = {};
+    // Buat mapping nama header
+    const headerMap = {};
 
-      headers.forEach((header, index) => {
-        obj[header] = row[index] || "";
-      });
-
-      return obj;
+    headers.forEach((header, index) => {
+      headerMap[cleanHeader(header)] = index;
     });
 
-    const nameColumn = headers.find(
-      h => normalize(h) === "nama"
+    // Cari kolom berdasarkan nama
+    const nameIndex = headerMap["nama"];
+
+    const itemIndex = headerMap["list barang"];
+
+    const countryIndex = headerMap["negara"];
+
+    const groupIndex = headerMap["grup order"];
+
+    const codeIndex = headerMap["kode"];
+
+    const paymentIndex = headers.findIndex(header =>
+      cleanHeader(header).includes("update payment")
     );
 
-    const itemColumn = headers.find(
-      h => normalize(h) === "list barang"
-    );
+    const totalIndex = headerMap["total payment due"];
 
-    const countryColumn = headers.find(
-      h => normalize(h) === "negara"
-    );
+    const detailIndex = headerMap["detail"];
 
-    const groupColumn = headers.find(
-      h => normalize(h) === "grup order"
-    );
+    const orders = rows.slice(1).map(row => ({
+      name:
+        nameIndex !== undefined
+          ? String(row[nameIndex] || "").trim()
+          : "",
 
-    const codeColumn = headers.find(
-      h => normalize(h) === "kode"
-    );
+      item:
+        itemIndex !== undefined
+          ? String(row[itemIndex] || "").trim()
+          : "",
 
-    const paymentColumn = headers.find(
-      h =>
-        normalize(h).includes("update payment") &&
-        normalize(h).includes("ems")
-    );
+      country:
+        countryIndex !== undefined
+          ? String(row[countryIndex] || "").trim()
+          : "",
 
-    const totalColumn = headers.find(
-      h => normalize(h) === "total payment due"
-    );
+      group:
+        groupIndex !== undefined
+          ? String(row[groupIndex] || "").trim()
+          : "",
 
-    const detailColumn = headers.find(
-      h => normalize(h) === "detail"
-    );
+      code:
+        codeIndex !== undefined
+          ? String(row[codeIndex] || "").trim()
+          : "",
 
-    const orders = data.map(row => ({
-      name: nameColumn ? row[nameColumn] : "",
-      item: itemColumn ? row[itemColumn] : "",
-      country: countryColumn ? row[countryColumn] : "",
-      group: groupColumn ? row[groupColumn] : "",
-      code: codeColumn ? row[codeColumn] : "",
-      update: paymentColumn ? row[paymentColumn] : "",
-      total: totalColumn ? row[totalColumn] : "",
-      detail: detailColumn ? row[detailColumn] : ""
+      update:
+        paymentIndex !== -1
+          ? String(row[paymentIndex] || "").trim()
+          : "",
+
+      total:
+        totalIndex !== undefined
+          ? String(row[totalIndex] || "").trim()
+          : "",
+
+      detail:
+        detailIndex !== undefined
+          ? String(row[detailIndex] || "").trim()
+          : ""
     }));
 
+    // Kalau ada pencarian nama
     const search = req.query?.name;
 
     if (search) {
-      const keyword = normalize(search);
+      const keyword = String(search)
+        .trim()
+        .toLowerCase();
 
       const results = orders.filter(order =>
-        normalize(order.name).includes(keyword)
+        order.name
+          .toLowerCase()
+          .includes(keyword)
       );
 
       return res.status(200).json({
@@ -149,7 +166,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("ORDERS API ERROR:", error);
 
     return res.status(500).json({
       error: error.message || "Terjadi kesalahan."
