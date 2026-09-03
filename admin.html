@@ -73,6 +73,7 @@ let m='';
 if(s!=='concert')m=`<div class="menu">
 <button onclick="openForm('update')"><b>📝 Update Jajan / Order</b><span>Update order & status CO.</span></button>
 <button onclick="openForm('payment')"><b>💳 Payment Batch</b><span>1 batch berisi banyak customer.</span></button>
+<button onclick="openPaymentVerification()"><b>✅ Verifikasi Pembayaran</b><span>Cek bukti pembayaran customer & approve/reject.</span></button>
 ${s!=='jastip'?`<button onclick="openForm('arrived')"><b>📦 Album Arrived INA</b><span>Upload update barang tiba.</span></button>`:''}
 <button onclick="openForm('link')"><b>🔗 Link CO</b><span>Tambah link checkout.</span></button>
 <button onclick="openDataList()"><b>📋 Lihat Data</b><span>Lihat, edit, dan hapus data yang sudah disimpan.</span></button></div>`;
@@ -130,6 +131,46 @@ const syncResponse=await fetch('/api/batches',{method:'POST',headers:{'Content-T
 if(!syncResponse.ok){const err=await syncResponse.json().catch(()=>({}));throw Error(err.error||'Batch tersimpan di browser, tetapi gagal disimpan ke database.');}
 st.className='status ok';st.textContent=`✓ Batch tersimpan (${customers.length} customer).`;setTimeout(()=>openService(activeService),700)
 }catch(x){st.className='status err';st.textContent=x.message}
+}
+
+
+async function openPaymentVerification(){
+  $('modalTitle').textContent='Verifikasi Pembayaran';
+  $('modalSub').textContent=SERVICE_NAMES[activeService];
+  $('modalBody').innerHTML=back()+`<p class="lead">Memuat bukti pembayaran...</p>`;
+  try{
+    const r=await fetch(`/api/payment-proof?batch_id=${encodeURIComponent('')}`,{credentials:'include'});
+    const d=await r.json();
+    if(!r.ok)throw Error(d.error||'Gagal mengambil data pembayaran.');
+    const rows=(d.submissions||[]).filter(x=>true);
+    const batches=get('go2408_batches').filter(b=>b.service===activeService);
+    const allowed=new Set(batches.map(b=>Number(b.id)));
+    const items=rows.filter(x=>allowed.has(Number(x.batch_id)));
+    $('modalBody').innerHTML=back()+`<p class="lead">${items.length} bukti pembayaran ditemukan.</p>`+(items.length?items.map(paymentReviewCard).join(''):`<div class="customer"><b>Belum ada bukti pembayaran.</b><div class="lead">Customer yang sudah upload bukti akan muncul di sini.</div></div>`);
+  }catch(e){$('modalBody').innerHTML=back()+`<div class="status err">${esc(e.message)}</div>`}
+}
+function paymentReviewCard(x){
+  const b=get('go2408_batches').find(b=>Number(b.id)===Number(x.batch_id));
+  return `<div class="customer" id="proof-${x.id}">
+    <b>${esc(x.customer_name)}</b>
+    <div class="lead">${esc(b?.batch||'Payment Batch')} · ${new Date(x.created_at).toLocaleString('id-ID')}</div>
+    <div style="margin-top:10px"><span class="status">${esc(x.status)}</span></div>
+    <img src="/api/file?path=${encodeURIComponent(x.proof_path)}" style="display:block;max-width:100%;max-height:330px;object-fit:contain;border-radius:12px;margin-top:12px;background:#f5f8fc" onerror="this.style.display='none'">
+    ${x.note?`<p class="lead">Catatan: ${esc(x.note)}</p>`:''}
+    <div class="actions" style="justify-content:flex-start">
+      <button class="btn" onclick="setPaymentStatus(${x.id},'approved')">✓ Approve</button>
+      <button class="btn gray" onclick="setPaymentStatus(${x.id},'rejected')">✕ Reject</button>
+    </div>
+  </div>`;
+}
+async function setPaymentStatus(id,status){
+  let note='';
+  if(status==='rejected')note=prompt('Alasan penolakan (opsional):')||'';
+  try{
+    const r=await fetch('/api/payment-proof',{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status,note})});
+    const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal mengubah status.');
+    openPaymentVerification();
+  }catch(e){alert(e.message)}
 }
 
 function updateForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Customer</label><input id="uName" required></div><div class="field"><label>Update Jajanan / Order</label><textarea id="uText"></textarea></div><div class="field"><label>Status</label><select id="uStatus"><option>Belum di CO</option><option>Sudah di CO</option><option>Diproses</option><option>Selesai</option></select></div>${fileField('uPhoto','Foto Update (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Update</button></div></form>`;$('uPhoto').onchange=()=>preview('uPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('uPhoto').files[0])p=await uploadFile($('uPhoto').files[0],'uPhotoStatus');const x=get('go2408_updates');x.push({id:Date.now(),service:activeService,name:$('uName').value,text:$('uText').value,status:$('uStatus').value,photo:p});save('go2408_updates',x);$('s').className='status ok';$('s').textContent='✓ Update tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
