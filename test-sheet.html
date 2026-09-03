@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+<meta charset="UTF-8">
+<title>Test Google Sheets</title>
+
+<style>
+
+body{
+  font-family:Arial,sans-serif;
+  padding:40px;
+  color:#244e7c;
+}
+
+button{
+  padding:12px 20px;
+  border:0;
+  border-radius:10px;
+  background:#2167bd;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#hasil{
+  margin-top:25px;
+}
+
+.item{
+  border:1px solid #dceafa;
+  border-radius:12px;
+  padding:15px;
+  margin:10px 0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Test Google Sheets</h1>
+
+<p>
+Klik tombol di bawah untuk membaca data Google Sheets.
+</p>
+
+<button onclick="bacaSheet()">
+BACA DATA
+</button>
+
+<div id="hasil"></div>
+
+
+<script>
+
+const SHEET_ID =
+"1FTVHM7QCfFWOnMIbO56eEBOjpH3uSQBd";
+
+const SHEET_GID =
+"734773841";
+
+
+async function bacaSheet(){
+
+const hasil =
+document.getElementById("hasil");
+
+hasil.innerHTML =
+"<p>Sedang membaca Google Sheets...</p>";
+
+
+try{
+
+const url =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+
+const response =
+await fetch(url);
+
+
+if(!response.ok){
+
+throw new Error(
+"Google Sheets tidak bisa diakses."
+);
+
+}
+
+
+const text =
+await response.text();
+
+
+console.log(text);
+
+
+hasil.innerHTML = `
+
+<p>
+<strong>Google Sheets berhasil dibaca! 🎉</strong>
+</p>
+
+<pre style="
+white-space:pre-wrap;
+background:#f5f8fc;
+padding:20px;
+border-radius:12px;
+overflow:auto;
+">${escapeHtml(text.substring(0,5000))}</pre>
+
+`;
+
+
+}catch(error){
+
+hasil.innerHTML = `
+
+<p style="color:red">
+
+❌ ${error.message}
+
+</p>
+
+<p>
+Pastikan Google Sheets sudah diset
+<strong>Anyone with the link → Viewer</strong>.
+</p>
+
+`;
+
+}
+
+}
+
+
+function escapeHtml(text){
+
+return String(text)
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+</script>
+
+</body>
+
+</html>
