@@ -25,7 +25,7 @@ function parseCSV(text) {
       row.push(cell);
       cell = "";
 
-      if (row.some(x => x.trim() !== "")) {
+      if (row.some(x => String(x).trim() !== "")) {
         rows.push(row);
       }
 
@@ -43,13 +43,14 @@ function parseCSV(text) {
   return rows;
 }
 
-function cleanHeader(value) {
-  return String(value || "")
-    .replace(/\r/g, "")
-    .replace(/\n/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+function clean(value) {
+  return String(value ?? "").trim();
+}
+
+function normalize(value) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 }
 
 export default async function handler(req, res) {
@@ -65,95 +66,54 @@ export default async function handler(req, res) {
     const csv = await response.text();
     const rows = parseCSV(csv);
 
-    if (!rows.length) {
+    if (rows.length < 2) {
       return res.status(200).json({
         orders: []
       });
     }
 
-    // Header Google Sheet
-    const headers = rows[0].map(header => String(header || "").trim());
+    /*
+      FORMAT SHEET KAMU:
 
-    // Buat mapping nama header
-    const headerMap = {};
+      0 = NAMA
+      1 = LIST BARANG
+      2 = NEGARA
+      3 = GRUP ORDER
+      4 = KODE
+      5 = UPDATE
+      6 = PAYMENT (EMS /AC TAX)
+      7 = TOTAL
+      8 = PAYMENT DUE
+      9 = DETAIL
+    */
 
-    headers.forEach((header, index) => {
-      headerMap[cleanHeader(header)] = index;
-    });
+    const orders = rows
+      .slice(1)
+      .map(row => ({
+        name: clean(row[0]),
+        item: clean(row[1]),
+        country: clean(row[2]),
+        group: clean(row[3]),
+        code: clean(row[4]),
+        update: clean(row[5]),
+        payment: clean(row[6]),
+        total: clean(row[7]),
+        paymentDue: clean(row[8]),
+        detail: clean(row[9])
+      }))
+      .filter(order =>
+        order.name ||
+        order.item ||
+        order.code
+      );
 
-    // Cari kolom berdasarkan nama
-    const nameIndex = headerMap["nama"];
-
-    const itemIndex = headerMap["list barang"];
-
-    const countryIndex = headerMap["negara"];
-
-    const groupIndex = headerMap["grup order"];
-
-    const codeIndex = headerMap["kode"];
-
-    const paymentIndex = headers.findIndex(header =>
-      cleanHeader(header).includes("update payment")
-    );
-
-    const totalIndex = headerMap["total payment due"];
-
-    const detailIndex = headerMap["detail"];
-
-    const orders = rows.slice(1).map(row => ({
-      name:
-        nameIndex !== undefined
-          ? String(row[nameIndex] || "").trim()
-          : "",
-
-      item:
-        itemIndex !== undefined
-          ? String(row[itemIndex] || "").trim()
-          : "",
-
-      country:
-        countryIndex !== undefined
-          ? String(row[countryIndex] || "").trim()
-          : "",
-
-      group:
-        groupIndex !== undefined
-          ? String(row[groupIndex] || "").trim()
-          : "",
-
-      code:
-        codeIndex !== undefined
-          ? String(row[codeIndex] || "").trim()
-          : "",
-
-      update:
-        paymentIndex !== -1
-          ? String(row[paymentIndex] || "").trim()
-          : "",
-
-      total:
-        totalIndex !== undefined
-          ? String(row[totalIndex] || "").trim()
-          : "",
-
-      detail:
-        detailIndex !== undefined
-          ? String(row[detailIndex] || "").trim()
-          : ""
-    }));
-
-    // Kalau ada pencarian nama
     const search = req.query?.name;
 
     if (search) {
-      const keyword = String(search)
-        .trim()
-        .toLowerCase();
+      const keyword = normalize(search);
 
       const results = orders.filter(order =>
-        order.name
-          .toLowerCase()
-          .includes(keyword)
+        normalize(order.name).includes(keyword)
       );
 
       return res.status(200).json({
