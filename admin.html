@@ -73,7 +73,6 @@ let m='';
 if(s!=='concert')m=`<div class="menu">
 <button onclick="openForm('update')"><b>📝 Update Jajan / Order</b><span>Update order & status CO.</span></button>
 <button onclick="openForm('payment')"><b>💳 Payment Batch</b><span>1 batch berisi banyak customer.</span></button>
-<button onclick="openPaymentVerification()"><b>✅ Verifikasi Pembayaran</b><span>Cek bukti pembayaran customer & approve/reject.</span></button>
 ${s!=='jastip'?`<button onclick="openForm('arrived')"><b>📦 Album Arrived INA</b><span>Upload update barang tiba.</span></button>`:''}
 <button onclick="openForm('link')"><b>🔗 Link CO</b><span>Tambah link checkout.</span></button>
 <button onclick="openDataList()"><b>📋 Lihat Data</b><span>Lihat, edit, dan hapus data yang sudah disimpan.</span></button></div>`;
@@ -133,164 +132,17 @@ st.className='status ok';st.textContent=`✓ Batch tersimpan (${customers.length
 }catch(x){st.className='status err';st.textContent=x.message}
 }
 
-
-async function openPaymentVerification(){
-  $('modalTitle').textContent='Verifikasi Pembayaran';
-  $('modalSub').textContent=SERVICE_NAMES[activeService];
-  $('modalBody').innerHTML=back()+`<p class="lead">Memuat bukti pembayaran...</p>`;
-  try{
-    const r=await fetch(`/api/payment-proof?batch_id=${encodeURIComponent('')}`,{credentials:'include'});
-    const d=await r.json();
-    if(!r.ok)throw Error(d.error||'Gagal mengambil data pembayaran.');
-    const rows=(d.submissions||[]).filter(x=>true);
-    const batches=get('go2408_batches').filter(b=>b.service===activeService);
-    const allowed=new Set(batches.map(b=>Number(b.id)));
-    const items=rows.filter(x=>allowed.has(Number(x.batch_id)));
-    $('modalBody').innerHTML=back()+`<p class="lead">${items.length} bukti pembayaran ditemukan.</p>`+(items.length?items.map(paymentReviewCard).join(''):`<div class="customer"><b>Belum ada bukti pembayaran.</b><div class="lead">Customer yang sudah upload bukti akan muncul di sini.</div></div>`);
-  }catch(e){$('modalBody').innerHTML=back()+`<div class="status err">${esc(e.message)}</div>`}
-}
-function paymentReviewCard(x){
-  const b=get('go2408_batches').find(b=>Number(b.id)===Number(x.batch_id));
-  return `<div class="customer" id="proof-${x.id}">
-    <b>${esc(x.customer_name)}</b>
-    <div class="lead">${esc(b?.batch||'Payment Batch')} · ${new Date(x.created_at).toLocaleString('id-ID')}</div>
-    <div style="margin-top:10px"><span class="status">${esc(x.status)}</span></div>
-    <img src="/api/file?path=${encodeURIComponent(x.proof_path)}" style="display:block;max-width:100%;max-height:330px;object-fit:contain;border-radius:12px;margin-top:12px;background:#f5f8fc" onerror="this.style.display='none'">
-    ${x.note?`<p class="lead">Catatan: ${esc(x.note)}</p>`:''}
-    <div class="actions" style="justify-content:flex-start">
-      <button class="btn" onclick="setPaymentStatus(${x.id},'approved')">✓ Approve</button>
-      <button class="btn gray" onclick="setPaymentStatus(${x.id},'rejected')">✕ Reject</button>
-    </div>
-  </div>`;
-}
-async function setPaymentStatus(id,status){
-  let note='';
-  if(status==='rejected')note=prompt('Alasan penolakan (opsional):')||'';
-  try{
-    const r=await fetch('/api/payment-proof',{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status,note})});
-    const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal mengubah status.');
-    openPaymentVerification();
-  }catch(e){alert(e.message)}
-}
-
-function updateForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Customer</label><input id="uName" required></div><div class="field"><label>Update Jajanan / Order</label><textarea id="uText"></textarea></div><div class="field"><label>Status</label><select id="uStatus"><option>Belum di CO</option><option>Sudah di CO</option><option>Diproses</option><option>Selesai</option></select></div>${fileField('uPhoto','Foto Update (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Update</button></div></form>`;$('uPhoto').onchange=()=>preview('uPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('uPhoto').files[0])p=await uploadFile($('uPhoto').files[0],'uPhotoStatus');const x=get('go2408_updates');x.push({id:Date.now(),service:activeService,name:$('uName').value,text:$('uText').value,status:$('uStatus').value,photo:p});save('go2408_updates',x);$('s').className='status ok';$('s').textContent='✓ Update tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
-function arrivedForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Judul</label><input id="aTitle" required></div><div class="field"><label>Catatan</label><textarea id="aNote"></textarea></div>${fileField('aPhoto','Foto Album Arrived',true)}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('aPhoto').onchange=()=>preview('aPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{const p=await uploadFile($('aPhoto').files[0],'aPhotoStatus');const x=get('go2408_arrived');x.push({id:Date.now(),service:activeService,title:$('aTitle').value,note:$('aNote').value,photo:p});save('go2408_arrived',x);$('s').className='status ok';$('s').textContent='✓ Tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
-function linkForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama / Judul Link</label><input id="lTitle" required></div><div class="field"><label>URL</label><input id="lUrl" type="url" required></div><div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Link</button></div></form>`;$('f').onsubmit=e=>{e.preventDefault();const x=get('go2408_links');x.push({id:Date.now(),service:activeService,title:$('lTitle').value,url:$('lUrl').value});save('go2408_links',x);$('s').className='status ok';$('s').textContent='✓ Link tersimpan'}}
-function scheduleForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="cName" required></div><div class="field"><label>Tanggal</label><input id="cDate" type="date" required></div><div class="field"><label>Kota / Venue</label><input id="cVenue"></div>${fileField('cPhoto','Foto Jadwal (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Jadwal</button></div></form>`;$('cPhoto').onchange=()=>preview('cPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('cPhoto').files[0])p=await uploadFile($('cPhoto').files[0],'cPhotoStatus');const x=get('go2408_schedule');x.push({id:Date.now(),name:$('cName').value,date:$('cDate').value,venue:$('cVenue').value,photo:p});save('go2408_schedule',x);$('s').className='status ok';$('s').textContent='✓ Jadwal tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
-function bookslotForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="bName" required></div><div class="field"><label>URL Form Bookslot</label><input id="bUrl" type="url" required></div><div class="field"><label>Info</label><textarea id="bNote"></textarea></div>${fileField('bPhoto','Foto (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('bPhoto').onchange=()=>preview('bPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('bPhoto').files[0])p=await uploadFile($('bPhoto').files[0],'bPhotoStatus');const x=get('go2408_bookslot');x.push({id:Date.now(),concert:$('bName').value,url:$('bUrl').value,note:$('bNote').value,photo:p});save('go2408_bookslot',x);$('s').className='status ok';$('s').textContent='✓ Form tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
-function concertForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="jName" required></div><div class="field"><label>URL Form Jastip</label><input id="jUrl" type="url" required></div><div class="field"><label>Catatan</label><textarea id="jNote"></textarea></div>${fileField('jPhoto','Foto (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('jPhoto').onchange=()=>preview('jPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('jPhoto').files[0])p=await uploadFile($('jPhoto').files[0],'jPhotoStatus');const x=get('go2408_concert_forms');x.push({id:Date.now(),concert:$('jName').value,url:$('jUrl').value,note:$('jNote').value,photo:p});save('go2408_concert_forms',x);$('s').className='status ok';$('s').textContent='✓ Form tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
-
-function money(n){return 'Rp '+Number(n||0).toLocaleString('id-ID')}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-
-function openDataList(){
-  $('modalTitle').textContent='Data Tersimpan';
-  $('modalSub').textContent=SERVICE_NAMES[activeService];
-  if(activeService==='concert'){renderConcertData();}else{renderServiceData();}
-}
-
-function renderServiceData(){
-  let batches=get('go2408_batches').filter(x=>x.service===activeService);
-  let updates=get('go2408_updates').filter(x=>x.service===activeService);
-  let arrived=get('go2408_arrived').filter(x=>x.service===activeService);
-  let links=get('go2408_links').filter(x=>x.service===activeService);
-
-  let h='';
-  h+=`<div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="openService('${activeService}')">← Kembali</button></div>`;
-
-  h+=`<h3>💳 Payment Batch</h3>`;
-  if(!batches.length) h+=`<p class="lead">Belum ada Payment Batch.</p>`;
-  batches.forEach(b=>{
-    h+=`<div class="item">
-      <b>${esc(b.batch)}</b><div class="status">${b.customers.length} customer</div>
-      <div style="margin-top:10px;display:grid;gap:6px">
-      ${b.customers.map((c,i)=>`<div style="padding:8px;background:#fff;border:1px solid #e6edf5;border-radius:9px">
-        <b>${esc(c.name)}</b> — ${esc(c.items)} — ${money(c.total)}
-        <span class="status"> · ${esc(c.paymentStatus||'Belum Bayar')}</span>
-      </div>`).join('')}
-      </div>
-      <div class="actions" style="justify-content:flex-start">
-        <button class="btn gray" onclick="viewBatch(${b.id})">Lihat Detail</button>
-        <button class="btn gray" onclick="deleteData('go2408_batches',${b.id},'Payment Batch')">Hapus</button>
-      </div>
-    </div>`;
-  });
-
-  h+=`<h3 style="margin-top:25px">📝 Update Jajan / Order</h3>`;
-  h+=dataCards(updates,'update');
-
-  if(activeService!=='jastip'){
-    h+=`<h3 style="margin-top:25px">📦 Album Arrived INA</h3>`;
-    h+=dataCards(arrived,'arrived');
-  }
-
-  h+=`<h3 style="margin-top:25px">🔗 Link CO</h3>`;
-  h+=dataCards(links,'link');
-
-  $('modalBody').innerHTML=h;
-}
-
-function dataCards(arr,type){
-  if(!arr.length)return `<p class="lead">Belum ada data.</p>`;
-  return `<div class="list">${arr.map(x=>{
-    if(type==='update')return `<div class="item"><b>${esc(x.name)}</b><div>${esc(x.text)}</div><div class="status">Status: ${esc(x.status)}</div><div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteData('go2408_updates',${x.id},'Update')">Hapus</button></div></div>`;
-    if(type==='arrived')return `<div class="item"><b>${esc(x.title)}</b><div>${esc(x.note||'')}</div><div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteData('go2408_arrived',${x.id},'Album Arrived')">Hapus</button></div></div>`;
-    return `<div class="item"><b>${esc(x.title)}</b><div style="word-break:break-all">${esc(x.url)}</div><div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteData('go2408_links',${x.id},'Link')">Hapus</button></div></div>`;
-  }).join('')}</div>`;
-}
-
-function viewBatch(id){
-  const b=get('go2408_batches').find(x=>x.id===id);
-  if(!b)return;
-  $('modalTitle').textContent=b.batch;
-  $('modalSub').textContent=`${b.customers.length} customer`;
-  $('modalBody').innerHTML=`
-    <div class="item">
-      <b>Foto Proof Batch</b><br>
-      <span class="status">${esc(b.batchPhoto||'Belum ada')}</span>
-    </div>
-    <div class="item" style="margin-top:10px">
-      <b>Foto QRIS</b><br>
-      <span class="status">${esc(b.qris||'Belum ada')}</span>
-    </div>
-    <h3>List Customer</h3>
-    <div class="list">${b.customers.map(c=>`
-      <div class="item">
-        <b>${esc(c.name)}</b>
-        <div>${esc(c.items)}</div>
-        <strong>${money(c.total)}</strong>
-        <div class="status">Status: ${esc(c.paymentStatus||'Belum Bayar')}</div>
-        ${c.paymentProof?`<div class="status">Bukti Payment: ${esc(c.paymentProof)}</div>`:''}
-      </div>`).join('')}</div>
-    <div class="actions"><button class="btn gray" onclick="renderServiceData()">← Kembali ke Data</button></div>`;
-}
-
-function renderConcertData(){
-  const schedule=get('go2408_schedule');
-  const bookslot=get('go2408_bookslot');
-  const forms=get('go2408_concert_forms');
-  $('modalBody').innerHTML=`
-    <div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="openService('concert')">← Kembali</button></div>
-    <h3>📅 Jadwal Konser</h3>${dataCards(schedule.map(x=>({...x,title:x.name,note:`${x.date||''} ${x.venue||''}`})),'arrived')}
-    <h3 style="margin-top:25px">🎟️ Form Bookslot</h3>${dataCards(bookslot.map(x=>({...x,title:x.concert,note:x.note||'',url:x.url})),'link')}
-    <h3 style="margin-top:25px">📝 Form Jastip Tiket</h3>${dataCards(forms.map(x=>({...x,title:x.concert,note:x.note||'',url:x.url})),'link')}`;
-}
-
-function deleteData(key,id,label){
-  if(!confirm(`Hapus ${label} ini?`))return;
-  save(key,get(key).filter(x=>x.id!==id));
-  openDataList();
-}
-
-async function syncLocalBatches(){
-  try{
-    const batches=get('go2408_batches');
-    for(const batch of batches){
-      await fetch('/api/batches',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(batch)});
-    }
-  }catch(e){console.warn('Sync batch gagal:',e)}
-}
-
+async function saveContent(type,payload){const r=await fetch('/api/content',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:Date.now(),service:activeService,type,...payload})});const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal menyimpan data.');return d}
+function updateForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Customer</label><input id="uName" required placeholder="Nama sesuai Google Sheets"></div><div class="field"><label>Catatan Update / Info Order</label><textarea id="uText" placeholder="Contoh: Barang sudah tiba / sedang diproses..."></textarea></div><div class="field"><label>Status</label><select id="uStatus"><option>Belum di CO</option><option>Sudah di CO</option><option>Diproses</option><option>Selesai</option></select></div>${fileField('uPhoto','Foto Update (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Update</button></div></form>`;$('uPhoto').onchange=()=>preview('uPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('uPhoto').files[0])p=await uploadFile($('uPhoto').files[0],'uPhotoStatus');await saveContent('update',{title:$('uName').value.trim(),note:$('uText').value,status:$('uStatus').value,photo:p});$('s').className='status ok';$('s').textContent='✓ Update tersimpan di database'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+function arrivedForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Judul</label><input id="aTitle" required></div><div class="field"><label>Catatan</label><textarea id="aNote"></textarea></div>${fileField('aPhoto','Foto Album Arrived',true)}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('aPhoto').onchange=()=>preview('aPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{const p=await uploadFile($('aPhoto').files[0],'aPhotoStatus');await saveContent('album',{title:$('aTitle').value,note:$('aNote').value,photo:p});$('s').className='status ok';$('s').textContent='✓ Album tersimpan di database'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+function linkForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama / Judul Link</label><input id="lTitle" required></div><div class="field"><label>URL</label><input id="lUrl" type="url" required></div><div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Link</button></div></form>`;$('f').onsubmit=async e=>{e.preventDefault();try{await saveContent('link',{title:$('lTitle').value,url:$('lUrl').value});$('s').className='status ok';$('s').textContent='✓ Link tersimpan di database'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+function scheduleForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="cName" required></div><div class="field"><label>Tanggal</label><input id="cDate" type="date" required></div><div class="field"><label>Kota / Venue</label><input id="cVenue"></div><div class="field"><label>Info</label><textarea id="cNote"></textarea></div>${fileField('cPhoto','Foto Jadwal (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan Jadwal</button></div></form>`;$('cPhoto').onchange=()=>preview('cPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('cPhoto').files[0])p=await uploadFile($('cPhoto').files[0],'cPhotoStatus');await saveContent('schedule',{title:$('cName').value,date:$('cDate').value,venue:$('cVenue').value,note:$('cNote').value,photo:p});$('s').className='status ok';$('s').textContent='✓ Jadwal tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+function bookslotForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="bName" required></div><div class="field"><label>URL Form Bookslot</label><input id="bUrl" type="url" required></div><div class="field"><label>Info</label><textarea id="bNote"></textarea></div>${fileField('bPhoto','Foto (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('bPhoto').onchange=()=>preview('bPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('bPhoto').files[0])p=await uploadFile($('bPhoto').files[0],'bPhotoStatus');await saveContent('bookslot',{title:$('bName').value,url:$('bUrl').value,note:$('bNote').value,photo:p});$('s').className='status ok';$('s').textContent='✓ Form bookslot tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+function concertForm(){$('modalBody').innerHTML=`<form id="f" class="form"><div class="field"><label>Nama Konser</label><input id="jName" required></div><div class="field"><label>URL Form Jastip</label><input id="jUrl" type="url" required></div><div class="field"><label>Catatan</label><textarea id="jNote"></textarea></div>${fileField('jPhoto','Foto (opsional)')}<div id="s" class="status"></div>${back()}<div class="actions"><button class="btn">Simpan</button></div></form>`;$('jPhoto').onchange=()=>preview('jPhoto');$('f').onsubmit=async e=>{e.preventDefault();try{let p='';if($('jPhoto').files[0])p=await uploadFile($('jPhoto').files[0],'jPhotoStatus');await saveContent('concertform',{title:$('jName').value,url:$('jUrl').value,note:$('jNote').value,photo:p});$('s').className='status ok';$('s').textContent='✓ Form jastip tersimpan'}catch(x){$('s').className='status err';$('s').textContent=x.message}}}
+async function openDataList(){ $('modalTitle').textContent='Data Tersimpan';$('modalSub').textContent=SERVICE_NAMES[activeService];$('modalBody').innerHTML=back()+'<div class="lead">Memuat data...</div>';try{const r=await fetch('/api/content');const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal membaca data.');const items=(d.items||[]).filter(x=>x.service===activeService);$('modalBody').innerHTML=back()+renderContentAdmin(items)}catch(e){$('modalBody').innerHTML=back()+`<div class="status err">${esc(e.message)}</div>`}}
+function renderContentAdmin(a){if(!a.length)return '<p class="lead">Belum ada data.</p>';return a.map(x=>`<div class="customer"><b>${esc(x.title)}</b><div class="lead">${esc(x.type)} ${esc(x.date||'')} ${esc(x.venue||'')}</div><div>${esc(x.note||'')}</div>${x.url?`<div style="word-break:break-all">${esc(x.url)}</div>`:''}<div class="actions" style="justify-content:flex-start"><button class="btn gray" onclick="deleteContent(${x.id})">Hapus</button></div></div>`).join('')}
+async function deleteContent(id){if(!confirm('Hapus data ini?'))return;const r=await fetch('/api/content?id='+encodeURIComponent(id),{method:'DELETE',credentials:'include'});const d=await r.json();if(!r.ok)return alert(d.error||'Gagal menghapus.');openDataList()}
+async function syncLocalBatches(){try{const batches=JSON.parse(localStorage.getItem('go2408_batches')||'[]');for(const batch of batches)await fetch('/api/batches',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(batch)})}catch(e){console.warn(e)}}
 checkAuth();
 </script>
 </body>
